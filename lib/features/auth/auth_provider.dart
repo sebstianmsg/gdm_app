@@ -1,9 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../data/api_exception.dart';
-import '../../data/auth_api.dart';
-import '../../data/token_storage.dart';
-import '../../providers/core_providers.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 enum AuthStatus { bootstrapping, authenticated, unauthenticated }
 
@@ -32,25 +28,30 @@ class AuthState {
   );
 }
 
-/// Sesión "optimista", igual que el frontend web: si hay token guardado se
-/// asume válido hasta que el backend lo rechace con un 401 (no hay endpoint
-/// de refresh ni chequeo local de `expiresAt`).
+/// Auth apoyada 100% en `supabase_flutter`: el SDK persiste la sesión entre
+/// reinicios y emite cambios por `onAuthStateChange`. No hay storage manual de
+/// tokens ni chequeo local de expiración.
 class AuthNotifier extends Notifier<AuthState> {
-  late final AuthApi _authApi;
-  late final TokenStorage _tokenStorage;
+  GoTrueClient get _auth => Supabase.instance.client.auth;
 
   @override
   AuthState build() {
-    _authApi = ref.watch(authApiProvider);
-    _tokenStorage = ref.watch(tokenStorageProvider);
-    _bootstrap();
-    return const AuthState(status: AuthStatus.bootstrapping);
-  }
+    // Reaccionar a cambios de sesión del SDK (login, logout, refresh, expiración).
+    final sub = _auth.onAuthStateChange.listen((data) {
+      final hasSession = data.session != null;
+      // Preservar isSubmitting/error mientras hay un login en curso sin sesión.
+      if (!hasSession && state.isSubmitting) return;
+      state = AuthState(
+        status: hasSession
+            ? AuthStatus.authenticated
+            : AuthStatus.unauthenticated,
+      );
+    });
+    ref.onDispose(sub.cancel);
 
-  Future<void> _bootstrap() async {
-    final token = await _tokenStorage.readToken();
-    state = AuthState(
-      status: (token != null && token.isNotEmpty)
+    // Estado inicial según la sesión ya restaurada por el SDK.
+    return AuthState(
+      status: _auth.currentSession != null
           ? AuthStatus.authenticated
           : AuthStatus.unauthenticated,
     );
@@ -59,10 +60,9 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> login(String email, String password) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
-      final session = await _authApi.login(email: email, password: password);
-      await _tokenStorage.saveToken(session.accessToken);
+      await _auth.signInWithPassword(email: email, password: password);
       state = const AuthState(status: AuthStatus.authenticated);
-    } on ApiException catch (e) {
+    } on AuthException catch (e) {
       state = state.copyWith(isSubmitting: false, error: e.message);
     } catch (_) {
       state = state.copyWith(
@@ -73,13 +73,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
-    await _tokenStorage.clearToken();
-    state = const AuthState(status: AuthStatus.unauthenticated);
-  }
-
-  /// Invocado por el `ApiClient` cuando cualquier request responde 401.
-  void forceLogout() {
-    _tokenStorage.clearToken();
+    await _auth.signOut();
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 }

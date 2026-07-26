@@ -1,28 +1,19 @@
-// Smoke test: sin token guardado, la app debe arrancar mostrando el login
+// Smoke test: sin sesión, la app debe arrancar mostrando el login
 // (equivalente a `boot()` -> `showGate()` en public/js/app.js).
 //
-// Se sobreescribe `tokenStorageProvider` con un fake en memoria: el plugin
-// real (`flutter_secure_storage`) usa un MethodChannel que no responde en
-// `flutter test` sin un host nativo.
+// Se sobreescribe `authProvider` con un fake que reporta `unauthenticated`,
+// así el test no depende de inicializar el SDK de Supabase (que usa canales
+// nativos no disponibles en `flutter test`).
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:gdm_app/data/token_storage.dart';
+import 'package:gdm_app/features/auth/auth_provider.dart';
 import 'package:gdm_app/main.dart';
-import 'package:gdm_app/providers/core_providers.dart';
 
-class _FakeTokenStorage implements TokenStorage {
-  String? _token;
-
+class _FakeAuthNotifier extends AuthNotifier {
   @override
-  Future<String?> readToken() async => _token;
-
-  @override
-  Future<void> saveToken(String token) async => _token = token;
-
-  @override
-  Future<void> clearToken() async => _token = null;
+  AuthState build() => const AuthState(status: AuthStatus.unauthenticated);
 }
 
 void main() {
@@ -32,7 +23,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          tokenStorageProvider.overrideWithValue(_FakeTokenStorage()),
+          authProvider.overrideWith(_FakeAuthNotifier.new),
         ],
         child: const GdmApp(),
       ),

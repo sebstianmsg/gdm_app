@@ -14,11 +14,12 @@ class Category {
   final String color;
   final bool isDeletable;
 
+  /// Mapeo desde una fila de Postgres (snake_case): `is_deletable`.
   factory Category.fromJson(Map<String, dynamic> json) => Category(
     id: json['id'] as String,
     name: json['name'] as String,
     color: json['color'] as String,
-    isDeletable: json['isDeletable'] as bool,
+    isDeletable: json['is_deletable'] as bool,
   );
 
   Category copyWith({String? name, String? color}) => Category(

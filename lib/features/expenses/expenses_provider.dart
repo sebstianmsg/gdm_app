@@ -1,22 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/expenses_api.dart';
+import '../../data/expenses_data.dart';
 import '../../models/expense.dart';
 import '../../providers/core_providers.dart';
 
 /// Gastos del mes `arg` (normalizado a día 1). Familia por mes para que
 /// navegar prev/next no pierda el caché de meses ya visitados en la sesión.
 class ExpensesNotifier extends FamilyAsyncNotifier<List<Expense>, DateTime> {
-  late final ExpensesApi _api;
+  late final ExpensesDataSource _data;
 
   @override
   Future<List<Expense>> build(DateTime arg) async {
-    _api = ref.watch(expensesApiProvider);
-    return _api.listForMonth(arg);
+    _data = ref.watch(expensesDataProvider);
+    return _data.listForMonth(arg);
   }
 
   Future<void> refresh() async {
-    state = await AsyncValue.guard(() => _api.listForMonth(arg));
+    state = await AsyncValue.guard(() => _data.listForMonth(arg));
   }
 
   Future<void> create({
@@ -25,7 +25,7 @@ class ExpensesNotifier extends FamilyAsyncNotifier<List<Expense>, DateTime> {
     required DateTime date,
     required String categoryId,
   }) async {
-    await _api.create(
+    await _data.create(
       description: description,
       amount: amount,
       date: date,
@@ -41,7 +41,7 @@ class ExpensesNotifier extends FamilyAsyncNotifier<List<Expense>, DateTime> {
     DateTime? date,
     String? categoryId,
   }) async {
-    await _api.update(
+    await _data.update(
       id,
       description: description,
       amount: amount,
@@ -52,7 +52,7 @@ class ExpensesNotifier extends FamilyAsyncNotifier<List<Expense>, DateTime> {
   }
 
   Future<void> delete(String id) async {
-    await _api.delete(id);
+    await _data.delete(id);
     await refresh();
   }
 }
