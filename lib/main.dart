@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -9,13 +10,18 @@ import 'features/month/home_screen.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final binding = WidgetsFlutterBinding.ensureInitialized();
+  // Mantiene el splash nativo visible mientras se inicializa Supabase y se
+  // quita explícitamente tras el primer frame (evita que quede colgado en
+  // Android 12+, donde el auto-quitado no siempre dispara).
+  FlutterNativeSplash.preserve(widgetsBinding: binding);
   Env.assertValid();
   await Supabase.initialize(
     url: Env.supabaseUrl,
     anonKey: Env.supabaseAnonKey,
   );
   runApp(const ProviderScope(child: GdmApp()));
+  FlutterNativeSplash.remove();
 }
 
 class GdmApp extends StatelessWidget {

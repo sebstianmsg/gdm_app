@@ -55,21 +55,28 @@ class DonutCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Center(
-            child: SizedBox(
-              width: 240,
-              height: 240,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CustomPaint(
-                    size: const Size(240, 240),
-                    painter: DonutPainter(summaries: summaries),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Lado del donut = ancho interno de la tarjeta − 8px de respiro
+              // a cada lado (16px total), para que nunca toque el borde.
+              final side = constraints.maxWidth - 16;
+              return Center(
+                child: SizedBox(
+                  width: side,
+                  height: side,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CustomPaint(
+                        size: Size(side, side),
+                        painter: DonutPainter(summaries: summaries),
+                      ),
+                      _AddButton(onPressed: onAddPressed),
+                    ],
                   ),
-                  _AddButton(onPressed: onAddPressed),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
           if (summaries.isNotEmpty) ...[
             const SizedBox(height: 24),

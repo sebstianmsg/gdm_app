@@ -39,6 +39,9 @@ dependencies:
   supabase_flutter: ^2.8.0
   intl: ^0.20.2
   google_fonts: ^6.2.1
+  # En dependencies (no dev) porque main.dart usa su API en runtime
+  # (FlutterNativeSplash.preserve/remove).
+  flutter_native_splash: ^2.4.6
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +53,39 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# path_provider_android 2.3.x arrastra jni 1.0.1, que no es compatible con AGP 9
+# (usa el bloque `kotlin {}` sin aplicar el plugin de Kotlin cuando AGP >= 9).
+# jni solo entra como transitivo de flutter_native_splash (herramienta dev-only),
+# la app no usa path_provider en runtime. Fijamos la última versión previa a jni.
+dependency_overrides:
+  path_provider_android: 2.2.17
+
+flutter_launcher_icons:
+  image_path: "resources/art/icon.png"
+  android: true
+  ios: true
+  web:
+    generate: true
+    image_path: "resources/art/icon.png"
+    background_color: "#64009D"
+    theme_color: "#64009D"
+  windows:
+    generate: true
+    image_path: "resources/art/icon.png"
+  macos:
+    generate: true
+    image_path: "resources/art/icon.png"
+  adaptive_icon_foreground: "resources/art/icon.png"
+  adaptive_icon_background: "#64009D"
+
+flutter_native_splash:
+  color: "#64009D"
+  image: "resources/art/splash_logo.png"
+  android_12:
+    color: "#64009D"
+    image: "resources/art/splash_logo.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

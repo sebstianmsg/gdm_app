@@ -68,7 +68,7 @@ class DonutPainter extends CustomPainter {
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w700,
-              fontSize: 15 * scale * 2.2,
+              fontSize: 20,
             ),
           ),
           textDirection: TextDirection.ltr,
