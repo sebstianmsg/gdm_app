@@ -13,10 +13,12 @@ class DonutCard extends StatelessWidget {
     super.key,
     required this.summaries,
     required this.onAddPressed,
+    required this.onManageCategories,
   });
 
   final List<CategorySummary> summaries;
   final VoidCallback onAddPressed;
+  final VoidCallback onManageCategories;
 
   @override
   Widget build(BuildContext context) {
@@ -30,14 +32,27 @@ class DonutCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'POR CATEGORÍA',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
-              color: AppColors.textMuted,
-            ),
+          Row(
+            children: [
+              Text(
+                'POR CATEGORÍA',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                  color: AppColors.textMuted,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.edit, color: AppColors.textMuted),
+                onPressed: onManageCategories,
+                tooltip: 'Agregar/Modificar categoría',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Center(

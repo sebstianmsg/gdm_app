@@ -198,12 +198,12 @@ class _ExpenseRowState extends State<ExpenseRow> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               IconButton(
-                icon: const Icon(Icons.close, color: AppColors.textMuted),
+                icon: const Icon(Icons.close, color: AppColors.danger),
                 onPressed: widget.onCancelEdit,
                 tooltip: 'Cancelar',
               ),
               IconButton(
-                icon: const Icon(Icons.check, color: AppColors.ink),
+                icon: const Icon(Icons.check, color: AppColors.success),
                 onPressed: _save,
                 tooltip: 'Guardar',
               ),

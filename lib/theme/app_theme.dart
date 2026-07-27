@@ -72,7 +72,7 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.ink,
+          foregroundColor: AppColors.text,
           side: const BorderSide(color: AppColors.ink),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.smallButton),
@@ -105,7 +105,7 @@ class AppTextStyles {
     fontSize: 12,
     fontWeight: FontWeight.w700,
     letterSpacing: 1.6, // ~0.14em
-    color: AppColors.ink,
+    color: AppColors.text, // blanco
   );
 
   static final h1 = GoogleFonts.inter(

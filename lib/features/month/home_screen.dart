@@ -42,7 +42,6 @@ class HomeScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             children: [
               _Header(
-                onManageCategories: () => showCategoriesModal(context),
                 onLogout: () => ref.read(authProvider.notifier).logout(),
               ),
               const SizedBox(height: 20),
@@ -50,6 +49,7 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               DonutCard(
                 summaries: summaries,
+                onManageCategories: () => showCategoriesModal(context),
                 onAddPressed: () => showAddExpenseSheet(
                   context,
                   categories: categories,
@@ -97,9 +97,8 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.onManageCategories, required this.onLogout});
+  const _Header({required this.onLogout});
 
-  final VoidCallback onManageCategories;
   final VoidCallback onLogout;
 
   @override
@@ -113,24 +112,18 @@ class _Header extends StatelessWidget {
             children: [
               Text('LIBRO DE GASTOS', style: AppTextStyles.eyebrow),
               const SizedBox(height: 4),
-              Text('Gastos del mes', style: AppTextStyles.h1),
+              Text('Mis gastos', style: AppTextStyles.h1),
             ],
           ),
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            OutlinedButton(
-              onPressed: onManageCategories,
-              child: const Text('Agregar/Modificar categoría'),
-            ),
-            const SizedBox(height: 8),
-            IconButton(
-              icon: const Icon(Icons.power_settings_new, color: AppColors.textMuted),
-              onPressed: onLogout,
-              tooltip: 'Cerrar sesión',
-            ),
-          ],
+        // Botón de salir flotando arriba a la derecha, alineado con el eyebrow.
+        IconButton(
+          icon: const Icon(Icons.power_settings_new, color: AppColors.textMuted),
+          onPressed: onLogout,
+          tooltip: 'Cerrar sesión',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          visualDensity: VisualDensity.compact,
         ),
       ],
     );

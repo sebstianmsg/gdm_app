@@ -1,6 +1,6 @@
 # 01 — Migración a Flutter con acceso directo a Supabase
 
-**Estado:** Approved
+**Estado:** Implementado
 **Fecha:** 2026-07-26
 **Dependencias:** ninguna (primer spec del proyecto)
 
