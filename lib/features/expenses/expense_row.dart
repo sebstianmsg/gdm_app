@@ -178,7 +178,7 @@ class _ExpenseRowState extends State<ExpenseRow> {
                 child: OutlinedButton(
                   onPressed: _pickDate,
                   child: Text(
-                    _date == null ? 'Fecha' : formatDateApi(_date!),
+                    _date == null ? 'Fecha' : formatDateEs(_date!),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

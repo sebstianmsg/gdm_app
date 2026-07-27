@@ -85,6 +85,16 @@ void main() {
     });
   });
 
+  group('formatDateEs', () {
+    test('formatea día/mes/año', () {
+      expect(formatDateEs(DateTime(2026, 7, 26)), '26/07/2026');
+    });
+
+    test('día y mes con cero a la izquierda', () {
+      expect(formatDateEs(DateTime(2026, 12, 5)), '05/12/2026');
+    });
+  });
+
   group('parseAmount', () {
     test('acepta num y String', () {
       expect(parseAmount(10), 10.0);

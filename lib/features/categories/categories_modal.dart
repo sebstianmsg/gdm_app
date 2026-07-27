@@ -10,8 +10,13 @@ import 'categories_provider.dart';
 /// Paleta para el selector de color (incluye los 7 colores default de
 /// `sql/schema.sql` + variantes extra).
 const _colorPalette = [
+  // 12 actuales.
   '#FF6B6B', '#FFD93D', '#4D96FF', '#C77DFF', '#6BCB77', '#00C9A7', '#FF9A3C',
   '#4FAE84', '#E86A4D', '#8B968F', '#5C7CFA', '#F783AC',
+  // 20 nuevos, distintos y variados.
+  '#E64980', '#BE4BDB', '#7950F2', '#4263EB', '#1C7ED6', '#1098AD', '#0CA678',
+  '#37B24D', '#74B816', '#F59F00', '#F76707', '#E8590C', '#D6336C', '#AE3EC9',
+  '#862E9C', '#364FC7', '#0B7285', '#087F5B', '#2B8A3E', '#5F3DC4',
 ];
 
 Future<void> showCategoriesModal(BuildContext context) {
@@ -26,7 +31,24 @@ Future<void> showCategoriesModal(BuildContext context) {
   );
 }
 
-Future<String?> _pickColor(BuildContext context, String current) {
+Future<String?> _pickColor(
+  BuildContext context, {
+  required String current,
+  required Set<String> usedColors,
+}) {
+  final currentUpper = current.toUpperCase();
+
+  // Colores libres (no usados por ninguna categoría) + el color actual, que
+  // siempre queda visible aunque esté "en uso" por la propia categoría.
+  final swatches = _colorPalette
+      .where((hex) => hex.toUpperCase() == currentUpper || !usedColors.contains(hex.toUpperCase()))
+      .toList();
+  // Si el color actual no está en la paleta (ej. sembrado con otro hex),
+  // se agrega aparte para que siga siendo visible y seleccionable.
+  if (current.isNotEmpty && !swatches.any((hex) => hex.toUpperCase() == currentUpper)) {
+    swatches.insert(0, current);
+  }
+
   return showDialog<String>(
     context: context,
     builder: (context) => AlertDialog(
@@ -34,7 +56,7 @@ Future<String?> _pickColor(BuildContext context, String current) {
       content: Wrap(
         spacing: 10,
         runSpacing: 10,
-        children: _colorPalette.map((hex) {
+        children: swatches.map((hex) {
           final color = colorFromHex(hex);
           return GestureDetector(
             onTap: () => Navigator.pop(context, hex),
@@ -44,7 +66,9 @@ Future<String?> _pickColor(BuildContext context, String current) {
               decoration: BoxDecoration(
                 color: color,
                 shape: BoxShape.circle,
-                border: hex == current ? Border.all(color: Colors.white, width: 2) : null,
+                border: hex.toUpperCase() == currentUpper
+                    ? Border.all(color: Colors.white, width: 2)
+                    : null,
               ),
             ),
           );
@@ -109,6 +133,12 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesProvider);
+    // Colores en uso por las categorías actuales, normalizados a mayúsculas.
+    final usedColors = (categoriesAsync.valueOrNull ?? const <Category>[])
+        .map((c) => c.color.toUpperCase())
+        .toSet();
+    // ¿Queda algún color de la paleta sin usar para una categoría nueva?
+    final hasFreeColor = _colorPalette.any((hex) => !usedColors.contains(hex.toUpperCase()));
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -140,7 +170,7 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
                     children: categories.map((c) => _CategoryRow(
                       category: c,
                       onColorTap: () async {
-                        final hex = await _pickColor(context, c.color);
+                        final hex = await _pickColor(context, current: c.color, usedColors: usedColors);
                         if (hex != null) {
                           await ref.read(categoriesProvider.notifier).updateCategory(c.id, color: hex);
                         }
@@ -159,7 +189,7 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
                 children: [
                   GestureDetector(
                     onTap: () async {
-                      final hex = await _pickColor(context, _newColor);
+                      final hex = await _pickColor(context, current: _newColor, usedColors: usedColors);
                       if (hex != null) setState(() => _newColor = hex);
                     },
                     child: Container(
@@ -177,9 +207,16 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  ElevatedButton(onPressed: _create, child: const Text('Agregar')),
+                  ElevatedButton(
+                    onPressed: hasFreeColor ? _create : null,
+                    child: const Text('Agregar'),
+                  ),
                 ],
               ),
+              if (!hasFreeColor) ...[
+                const SizedBox(height: 8),
+                const Text('No hay colores libres', style: TextStyle(color: AppColors.alert)),
+              ],
               if (_error != null) ...[
                 const SizedBox(height: 8),
                 Text(_error!, style: const TextStyle(color: AppColors.alert)),

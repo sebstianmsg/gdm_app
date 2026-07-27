@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/category.dart';
-import '../../models/expense.dart' show formatDateApi;
+import '../../models/expense.dart' show formatDateEs;
 import '../../theme/app_colors.dart';
 import '../../theme/app_radius.dart';
 import '../../utils/category_keywords.dart';
@@ -128,7 +128,7 @@ class _AddExpenseFormState extends State<_AddExpenseForm> {
           const SizedBox(height: 10),
           OutlinedButton(
             onPressed: _pickDate,
-            child: Align(alignment: Alignment.centerLeft, child: Text(formatDateApi(_date))),
+            child: Align(alignment: Alignment.centerLeft, child: Text(formatDateEs(_date))),
           ),
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(

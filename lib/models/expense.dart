@@ -7,6 +7,16 @@ String formatDateApi(DateTime date) {
   return '$y-$m-$d';
 }
 
+/// Formatea una fecha como `día/mes/año` (ej. `26/07/2026`), día y mes con
+/// cero a la izquierda. Solo para mostrar en la UI: la persistencia y las
+/// queries siguen usando [formatDateApi] (`YYYY-MM-DD`).
+String formatDateEs(DateTime date) {
+  final d = date.day.toString().padLeft(2, '0');
+  final m = date.month.toString().padLeft(2, '0');
+  final y = date.year.toString().padLeft(4, '0');
+  return '$d/$m/$y';
+}
+
 DateTime parseDateApi(String date) {
   final parts = date.split('-');
   return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
