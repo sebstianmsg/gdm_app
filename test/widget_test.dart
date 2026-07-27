@@ -28,7 +28,10 @@ void main() {
         child: const GdmApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    // El login tiene un fondo con animación infinita (AnimatedLoginBackground),
+    // por lo que `pumpAndSettle()` nunca terminaría. Un `pump()` basta para
+    // construir el primer frame y verificar que aparece el login.
+    await tester.pump();
 
     // Aparece dos veces: el título de la tarjeta y el label del botón.
     expect(find.text('Iniciar sesión'), findsWidgets);
