@@ -42,7 +42,12 @@ class HomeScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             children: [
               _Header(
-                onLogout: () => ref.read(authProvider.notifier).logout(),
+                onLogout: () async {
+                  final confirmed = await _confirmLogout(context);
+                  if (confirmed) {
+                    ref.read(authProvider.notifier).logout();
+                  }
+                },
               ),
               const SizedBox(height: 20),
               _MonthCard(month: month, total: total),
@@ -94,6 +99,33 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Muestra un diálogo de confirmación antes de cerrar sesión.
+/// Devuelve `true` solo si el usuario confirma; `false` al cancelar o descartar.
+Future<bool> _confirmLogout(BuildContext context) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('¿Cerrar sesión?'),
+      content: const Text('Tu sesión se cerrará y volverás al login.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.danger,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Cerrar sesión'),
+        ),
+      ],
+    ),
+  );
+  return confirmed ?? false;
 }
 
 class _Header extends StatelessWidget {
