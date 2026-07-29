@@ -42,6 +42,10 @@ dependencies:
   # En dependencies (no dev) porque main.dart usa su API en runtime
   # (FlutterNativeSplash.preserve/remove).
   flutter_native_splash: ^2.4.6
+  # Login nativo con Google (hoja de cuenta) + idToken para signInWithIdToken.
+  google_sign_in: ^6.2.1
+  # Persistencia local del flag "Recordarme".
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:

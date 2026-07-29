@@ -6,6 +6,8 @@ import '../../theme/app_radius.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/animated_login_background.dart';
 import 'auth_provider.dart';
+import 'forgot_password_screen.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +20,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -30,7 +33,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     if (email.isEmpty || password.isEmpty) return;
-    ref.read(authProvider.notifier).login(email, password);
+    ref.read(authProvider.notifier).login(email, password, rememberMe: _rememberMe);
+  }
+
+  void _openSignup() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const SignupScreen()),
+    );
+  }
+
+  void _openForgotPassword() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+    );
   }
 
   @override
@@ -99,6 +114,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: _rememberMe,
+                              onChanged: auth.isSubmitting
+                                  ? null
+                                  : (v) => setState(
+                                      () => _rememberMe = v ?? false,
+                                    ),
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: auth.isSubmitting
+                                    ? null
+                                    : () => setState(
+                                        () => _rememberMe = !_rememberMe,
+                                      ),
+                                child: Text(
+                                  'Recordarme',
+                                  style: AppTextStyles.muted,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: auth.isSubmitting
+                                ? null
+                                : _openForgotPassword,
+                            child: const Text('¿Olvidaste tu contraseña?'),
+                          ),
+                        ),
                         if (auth.error != null) ...[
                           const SizedBox(height: 12),
                           Text(
@@ -106,7 +156,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             style: const TextStyle(color: AppColors.alert),
                           ),
                         ],
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -121,6 +171,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     ),
                                   )
                                 : const Text('Iniciar sesión'),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: auth.isSubmitting
+                                ? null
+                                : () => ref
+                                      .read(authProvider.notifier)
+                                      .signInWithGoogle(),
+                            icon: const Icon(Icons.login),
+                            label: const Text('Continuar con Google'),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Center(
+                          child: TextButton(
+                            onPressed: auth.isSubmitting ? null : _openSignup,
+                            child: const Text('Crear cuenta'),
                           ),
                         ),
                       ],

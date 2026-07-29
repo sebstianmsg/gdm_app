@@ -26,6 +26,23 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Deep link: callback de Google + confirmación de email
+                 (com.gdmapp://login-callback). El SDK de Supabase procesa el
+                 token entrante y emite la sesión por onAuthStateChange. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="com.gdmapp" android:host="login-callback"/>
+            </intent-filter>
+            <!-- Deep link: reset de contraseña (com.gdmapp://reset-password).
+                 Abre reset_password_screen para fijar la nueva contraseña. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="com.gdmapp" android:host="reset-password"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
