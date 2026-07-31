@@ -66,7 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   Text('LIBRO DE GASTOS', style: AppTextStyles.eyebrow),
                   const SizedBox(height: 8),
-                  Text('Gastos del mes', style: AppTextStyles.h1),
+                  Text('Mis gastos', style: AppTextStyles.h1),
                   const SizedBox(height: 32),
                   Container(
                     padding: const EdgeInsets.all(24),
