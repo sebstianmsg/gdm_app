@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../widgets/animated_login_background.dart';
 import 'auth_provider.dart';
@@ -58,9 +58,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.palette.surface,
                   borderRadius: BorderRadius.circular(AppRadius.modal),
-                  border: Border.all(color: AppColors.line),
+                  border: Border.all(color: context.palette.line),
                 ),
                 child: Form(
                   key: _formKey,
@@ -85,7 +85,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                               _obscurePassword
                                   ? Icons.visibility_outlined
                                   : Icons.visibility_off_outlined,
-                              color: AppColors.textMuted,
+                              color: context.palette.textMuted,
                             ),
                             onPressed: () => setState(
                                 () => _obscurePassword = !_obscurePassword),
@@ -107,7 +107,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       if (auth.error != null) ...[
                         const SizedBox(height: 12),
                         Text(auth.error!,
-                            style: const TextStyle(color: AppColors.alert)),
+                            style: TextStyle(color: context.palette.alert)),
                       ],
                       const SizedBox(height: 20),
                       SizedBox(
@@ -115,12 +115,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                         child: ElevatedButton(
                           onPressed: auth.isSubmitting ? null : _submit,
                           child: auth.isSubmitting
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 18,
                                   height: 18,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: AppColors.inkText,
+                                    color: context.palette.inkText,
                                   ),
                                 )
                               : const Text('Guardar contraseña'),

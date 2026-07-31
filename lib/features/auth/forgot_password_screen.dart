@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/animated_login_background.dart';
@@ -46,6 +46,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        // Flota sobre el fondo animado oscuro (idéntico en ambos temas).
+        foregroundColor: AppPalette.dark.text,
         title: const Text('Recuperar contraseña'),
       ),
       extendBodyBehindAppBar: true,
@@ -58,9 +60,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.palette.surface,
                   borderRadius: BorderRadius.circular(AppRadius.modal),
-                  border: Border.all(color: AppColors.line),
+                  border: Border.all(color: context.palette.line),
                 ),
                 child: _sent
                     ? _buildSentNotice(context)
@@ -78,8 +80,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.mark_email_read_outlined,
-            color: AppColors.ink, size: 40),
+        Icon(Icons.mark_email_read_outlined,
+            color: context.palette.ink, size: 40),
         const SizedBox(height: 16),
         Text('Te enviamos un email',
             style: Theme.of(context).textTheme.titleLarge),
@@ -88,7 +90,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           'Si ${_emailController.text.trim()} tiene una cuenta, te llegará un '
           'link para restablecer tu contraseña. Tocá el link desde este '
           'dispositivo.',
-          style: AppTextStyles.muted,
+          style: AppTextStyles.muted(context),
         ),
         const SizedBox(height: 20),
         SizedBox(
@@ -114,7 +116,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           const SizedBox(height: 8),
           Text(
             'Ingresá tu email y te enviamos un link para crear una nueva.',
-            style: AppTextStyles.muted,
+            style: AppTextStyles.muted(context),
           ),
           const SizedBox(height: 20),
           TextFormField(
@@ -127,7 +129,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           ),
           if (auth.error != null) ...[
             const SizedBox(height: 12),
-            Text(auth.error!, style: const TextStyle(color: AppColors.alert)),
+            Text(auth.error!, style: TextStyle(color: context.palette.alert)),
           ],
           const SizedBox(height: 20),
           SizedBox(
@@ -135,12 +137,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             child: ElevatedButton(
               onPressed: auth.isSubmitting ? null : _submit,
               child: auth.isSubmitting
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppColors.inkText,
+                        color: context.palette.inkText,
                       ),
                     )
                   : const Text('Enviar link'),

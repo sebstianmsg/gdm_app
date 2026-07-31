@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/expense.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../utils/format.dart';
 
 /// "¿Confirmás borrar el gasto '{desc}' de {monto}?" — réplica de
@@ -22,7 +22,7 @@ Future<bool> showDeleteExpenseDialog(BuildContext context, Expense expense) asyn
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.alert,
+            backgroundColor: context.palette.alert,
             foregroundColor: Colors.white,
           ),
           onPressed: () => Navigator.pop(context, true),

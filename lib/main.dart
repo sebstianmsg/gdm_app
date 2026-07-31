@@ -10,6 +10,7 @@ import 'features/auth/login_screen.dart';
 import 'features/auth/reset_password_screen.dart';
 import 'features/month/home_screen.dart';
 import 'theme/app_theme.dart';
+import 'theme/theme_provider.dart';
 
 Future<void> main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
@@ -26,27 +27,40 @@ Future<void> main() async {
   // no marcó "Recordarme" en su último login por email, cerramos esa sesión
   // acá —antes de runApp— para que al reabrir la app aparezca el login. El
   // login con Google fija remember_me=true, así que nunca se desloguea acá.
+  final prefs = await SharedPreferences.getInstance();
   final auth = Supabase.instance.client.auth;
   if (auth.currentSession != null) {
-    final prefs = await SharedPreferences.getInstance();
     final rememberMe = prefs.getBool(kRememberMeKey) ?? false;
     if (!rememberMe) {
       await auth.signOut();
     }
   }
-  runApp(const ProviderScope(child: GdmApp()));
+  // Tema elegido, leído antes del primer frame para arrancar sin parpadeo.
+  // Ausente ⇒ oscuro.
+  final initialThemeMode = themeModeFromString(prefs.getString(kThemeModeKey));
+  runApp(
+    ProviderScope(
+      overrides: [
+        initialThemeModeProvider.overrideWithValue(initialThemeMode),
+      ],
+      child: const GdmApp(),
+    ),
+  );
   FlutterNativeSplash.remove();
 }
 
-class GdmApp extends StatelessWidget {
+class GdmApp extends ConsumerWidget {
   const GdmApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
     return MaterialApp(
       title: 'Gastos del mes',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
       home: const _AuthGate(),
     );
   }

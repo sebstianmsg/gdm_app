@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
@@ -44,11 +44,11 @@ class LegendList extends StatelessWidget {
                   Expanded(
                     child: Text(
                       s.category.name,
-                      style: AppTextStyles.description,
+                      style: AppTextStyles.description(context),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Text(formatMoney(s.amount), style: AppTextStyles.amount),
+                  Text(formatMoney(s.amount), style: AppTextStyles.amount(context)),
                 ],
               ),
               const SizedBox(height: 6),
@@ -57,7 +57,7 @@ class LegendList extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, constraints) => Stack(
                     children: [
-                      Container(height: 6, color: AppColors.surface2),
+                      Container(height: 6, color: context.palette.surface2),
                       Container(
                         height: 6,
                         width: constraints.maxWidth * (s.percentage / 100),

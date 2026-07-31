@@ -1,68 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'app_colors.dart';
+import 'app_palette.dart';
 import 'app_radius.dart';
 
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get dark {
-    final base = ThemeData.dark(useMaterial3: true);
+  static ThemeData get dark => _build(AppPalette.dark, Brightness.dark);
+
+  static ThemeData get light => _build(AppPalette.light, Brightness.light);
+
+  /// Arma el `ThemeData` de un tema a partir de su [palette].
+  static ThemeData _build(AppPalette palette, Brightness brightness) {
+    final base = ThemeData(useMaterial3: true, brightness: brightness);
     final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(
-      bodyColor: AppColors.text,
-      displayColor: AppColors.text,
+      bodyColor: palette.text,
+      displayColor: palette.text,
     );
 
     return base.copyWith(
-      scaffoldBackgroundColor: AppColors.bg,
+      scaffoldBackgroundColor: palette.bg,
       colorScheme: base.colorScheme.copyWith(
-        surface: AppColors.surface,
-        primary: AppColors.ink,
-        error: AppColors.alert,
+        surface: palette.surface,
+        primary: palette.ink,
+        error: palette.alert,
       ),
       textTheme: textTheme,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.bg,
+      extensions: [palette],
+      appBarTheme: AppBarTheme(
+        backgroundColor: palette.bg,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       cardTheme: CardThemeData(
-        color: AppColors.surface,
+        color: palette.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.card),
-          side: const BorderSide(color: AppColors.line),
+          side: BorderSide(color: palette.line),
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.surface,
+        backgroundColor: palette.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.modal),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.card,
+        fillColor: palette.card,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderSide: BorderSide(color: palette.line),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderSide: BorderSide(color: palette.line),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.ink, width: 2),
+          borderSide: BorderSide(color: palette.ink, width: 2),
         ),
-        hintStyle: const TextStyle(color: AppColors.textMuted),
+        hintStyle: TextStyle(color: palette.textMuted),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.ink,
-          foregroundColor: AppColors.inkText,
+          backgroundColor: palette.ink,
+          foregroundColor: palette.inkText,
           textStyle: const TextStyle(fontWeight: FontWeight.w700),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.smallButton),
@@ -72,8 +78,8 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.text,
-          side: const BorderSide(color: AppColors.ink),
+          foregroundColor: palette.text,
+          side: BorderSide(color: palette.ink),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.smallButton),
           ),
@@ -81,13 +87,13 @@ class AppTheme {
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: AppColors.textMuted),
+        style: TextButton.styleFrom(foregroundColor: palette.textMuted),
       ),
-      dividerTheme: const DividerThemeData(color: AppColors.line, space: 1),
+      dividerTheme: DividerThemeData(color: palette.line, space: 1),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.card,
-        contentTextStyle: const TextStyle(color: AppColors.text),
-        actionTextColor: AppColors.ink,
+        backgroundColor: palette.card,
+        contentTextStyle: TextStyle(color: palette.text),
+        actionTextColor: palette.ink,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
         ),
@@ -98,51 +104,54 @@ class AppTheme {
 
 /// Estilos de texto puntuales que no mapean a un rol estándar de Material
 /// (eyebrow, labels de sección uppercase, total del mes, etc).
+///
+/// El color se resuelve en el punto de uso con el token del tema activo
+/// (ver `AppTextStyles.<x>(context)`), para que reaccionen al tema.
 class AppTextStyles {
   AppTextStyles._();
 
-  static final eyebrow = GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 1.6, // ~0.14em
-    color: AppColors.text, // blanco
-  );
+  static TextStyle eyebrow(BuildContext context) => GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.6, // ~0.14em
+        color: context.palette.text,
+      );
 
-  static final h1 = GoogleFonts.inter(
-    fontSize: 38,
-    fontWeight: FontWeight.w700,
-    letterSpacing: -0.3,
-    color: AppColors.text,
-  );
+  static TextStyle h1(BuildContext context) => GoogleFonts.inter(
+        fontSize: 38,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
+        color: context.palette.text,
+      );
 
-  static final sectionLabel = GoogleFonts.inter(
-    fontSize: 11,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 1.2,
-    color: AppColors.textMuted,
-  );
+  static TextStyle sectionLabel(BuildContext context) => GoogleFonts.inter(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.2,
+        color: context.palette.textMuted,
+      );
 
-  static final total = GoogleFonts.inter(
-    fontSize: 30,
-    fontWeight: FontWeight.w700,
-    color: AppColors.text,
-  );
+  static TextStyle total(BuildContext context) => GoogleFonts.inter(
+        fontSize: 30,
+        fontWeight: FontWeight.w700,
+        color: context.palette.text,
+      );
 
-  static final amount = GoogleFonts.inter(
-    fontSize: 15,
-    fontWeight: FontWeight.w700,
-    color: AppColors.text,
-  );
+  static TextStyle amount(BuildContext context) => GoogleFonts.inter(
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: context.palette.text,
+      );
 
-  static final description = GoogleFonts.inter(
-    fontSize: 14.5,
-    fontWeight: FontWeight.w500,
-    color: AppColors.text,
-  );
+  static TextStyle description(BuildContext context) => GoogleFonts.inter(
+        fontSize: 14.5,
+        fontWeight: FontWeight.w500,
+        color: context.palette.text,
+      );
 
-  static final muted = GoogleFonts.inter(
-    fontSize: 13,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textMuted,
-  );
+  static TextStyle muted(BuildContext context) => GoogleFonts.inter(
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        color: context.palette.textMuted,
+      );
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/category.dart';
 import '../../models/expense.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../expenses/expense_row.dart';
@@ -49,9 +49,9 @@ class _MovementsCardState extends State<MovementsCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.line),
+        border: Border.all(color: context.palette.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -62,12 +62,12 @@ class _MovementsCardState extends State<MovementsCard> {
               padding: const EdgeInsets.symmetric(vertical: 14),
               child: Row(
                 children: [
-                  Text('MOVIMIENTOS', style: AppTextStyles.sectionLabel),
+                  Text('MOVIMIENTOS', style: AppTextStyles.sectionLabel(context)),
                   const Spacer(),
                   AnimatedRotation(
                     turns: _expanded ? 0.25 : 0,
                     duration: const Duration(milliseconds: 150),
-                    child: const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                    child: Icon(Icons.chevron_right, color: context.palette.textMuted),
                   ),
                 ],
               ),
@@ -82,9 +82,9 @@ class _MovementsCardState extends State<MovementsCard> {
 
   Widget _buildBody() {
     if (widget.isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Center(child: Text('Cargando...', style: TextStyle(color: AppColors.textMuted))),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: Text('Cargando...', style: TextStyle(color: context.palette.textMuted))),
       );
     }
     if (widget.expenses.isEmpty) {
@@ -92,23 +92,23 @@ class _MovementsCardState extends State<MovementsCard> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.line, style: BorderStyle.solid),
+          border: Border.all(color: context.palette.line, style: BorderStyle.solid),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Column(
+        child: Column(
           children: [
             Text(
               'Nada cargado todavía',
               style: TextStyle(
-                color: AppColors.textMuted,
+                color: context.palette.textMuted,
                 fontStyle: FontStyle.italic,
                 fontSize: 20,
               ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
               'agregá un gasto desde el + para empezar el mes',
-              style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+              style: TextStyle(color: context.palette.textMuted, fontSize: 13),
               textAlign: TextAlign.center,
             ),
           ],
@@ -121,11 +121,11 @@ class _MovementsCardState extends State<MovementsCard> {
       children: [
         Row(
           children: [
-            const Text('Ordenar por', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+            Text('Ordenar por', style: TextStyle(color: context.palette.textMuted, fontSize: 13)),
             const Spacer(),
             DropdownButton<MovementsSort>(
               value: _sort,
-              dropdownColor: AppColors.card,
+              dropdownColor: context.palette.card,
               underline: const SizedBox.shrink(),
               items: const [
                 DropdownMenuItem(value: MovementsSort.category, child: Text('Por categoría')),
@@ -173,7 +173,7 @@ class _MovementsCardState extends State<MovementsCard> {
                       style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                     ),
                     const Spacer(),
-                    Text(formatMoney(g.total), style: AppTextStyles.amount),
+                    Text(formatMoney(g.total), style: AppTextStyles.amount(context)),
                   ],
                 ),
               ),

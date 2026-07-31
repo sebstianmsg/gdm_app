@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/category.dart';
 import '../../models/expense.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/category_chip.dart';
@@ -95,7 +95,7 @@ class _ExpenseRowState extends State<ExpenseRow> {
 
   Color get _dotColor => widget.category != null
       ? colorFromHex(widget.category!.color)
-      : AppColors.textMuted;
+      : context.palette.textMuted;
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +108,7 @@ class _ExpenseRowState extends State<ExpenseRow> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.palette.card,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -122,21 +122,21 @@ class _ExpenseRowState extends State<ExpenseRow> {
           Expanded(
             child: Text(
               widget.expense.description,
-              style: AppTextStyles.description,
+              style: AppTextStyles.description(context),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(width: 8),
           if (widget.category != null) CategoryChip(category: widget.category!),
           const SizedBox(width: 10),
-          Text(formatMoney(widget.expense.amount), style: AppTextStyles.amount),
+          Text(formatMoney(widget.expense.amount), style: AppTextStyles.amount(context)),
           IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textMuted),
+            icon: Icon(Icons.edit_outlined, size: 18, color: context.palette.textMuted),
             onPressed: widget.onStartEdit,
             tooltip: 'Editar',
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+            icon: Icon(Icons.close, size: 18, color: context.palette.textMuted),
             onPressed: widget.onDelete,
             tooltip: 'Borrar',
           ),
@@ -150,9 +150,9 @@ class _ExpenseRowState extends State<ExpenseRow> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.palette.card,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.ink),
+        border: Border.all(color: context.palette.ink),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -198,12 +198,12 @@ class _ExpenseRowState extends State<ExpenseRow> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               IconButton(
-                icon: const Icon(Icons.close, color: AppColors.danger),
+                icon: Icon(Icons.close, color: context.palette.danger),
                 onPressed: widget.onCancelEdit,
                 tooltip: 'Cancelar',
               ),
               IconButton(
-                icon: const Icon(Icons.check, color: AppColors.success),
+                icon: Icon(Icons.check, color: context.palette.success),
                 onPressed: _save,
                 tooltip: 'Guardar',
               ),

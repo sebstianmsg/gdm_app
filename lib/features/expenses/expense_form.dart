@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/category.dart';
 import '../../models/expense.dart' show formatDateEs;
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../utils/category_keywords.dart';
 
@@ -19,7 +19,7 @@ Future<void> showAddExpenseSheet(
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.surface,
+    backgroundColor: context.palette.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.modal)),
     ),
@@ -143,7 +143,7 @@ class _AddExpenseFormState extends State<_AddExpenseForm> {
           ),
           if (_error != null) ...[
             const SizedBox(height: 10),
-            Text(_error!, style: const TextStyle(color: AppColors.alert)),
+            Text(_error!, style: TextStyle(color: context.palette.alert)),
           ],
           const SizedBox(height: 16),
           OutlinedButton(onPressed: _submit, child: const Text('Agregar')),

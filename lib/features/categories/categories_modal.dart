@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/category.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../widgets/category_chip.dart';
 import 'categories_provider.dart';
@@ -23,7 +23,7 @@ Future<void> showCategoriesModal(BuildContext context) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.surface,
+    backgroundColor: context.palette.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.modal)),
     ),
@@ -118,7 +118,7 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.alert, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: context.palette.alert, foregroundColor: Colors.white),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Borrar'),
           ),
@@ -164,7 +164,7 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
               Expanded(
                 child: categoriesAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('$e', style: const TextStyle(color: AppColors.alert))),
+                  error: (e, _) => Center(child: Text('$e', style: TextStyle(color: context.palette.alert))),
                   data: (categories) => ListView(
                     controller: scrollController,
                     children: categories.map((c) => _CategoryRow(
@@ -215,11 +215,11 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
               ),
               if (!hasFreeColor) ...[
                 const SizedBox(height: 8),
-                const Text('No hay colores libres', style: TextStyle(color: AppColors.alert)),
+                Text('No hay colores libres', style: TextStyle(color: context.palette.alert)),
               ],
               if (_error != null) ...[
                 const SizedBox(height: 8),
-                Text(_error!, style: const TextStyle(color: AppColors.alert)),
+                Text(_error!, style: TextStyle(color: context.palette.alert)),
               ],
             ],
           ),
@@ -295,7 +295,7 @@ class _CategoryRowState extends State<_CategoryRow> {
           ),
           if (widget.onDelete != null)
             IconButton(
-              icon: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+              icon: Icon(Icons.close, size: 18, color: context.palette.textMuted),
               onPressed: widget.onDelete,
             ),
         ],

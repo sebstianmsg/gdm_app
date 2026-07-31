@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/animated_login_background.dart';
@@ -64,16 +64,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('LIBRO DE GASTOS', style: AppTextStyles.eyebrow),
+                  // El título va sobre el fondo animado oscuro (idéntico en
+                  // ambos temas), así que se mantiene claro siempre.
+                  Text(
+                    'LIBRO DE GASTOS',
+                    style: AppTextStyles.eyebrow(context)
+                        .copyWith(color: AppPalette.dark.text),
+                  ),
                   const SizedBox(height: 8),
-                  Text('Mis gastos', style: AppTextStyles.h1),
+                  Text(
+                    'Mis gastos',
+                    style: AppTextStyles.h1(context)
+                        .copyWith(color: AppPalette.dark.text),
+                  ),
                   const SizedBox(height: 32),
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: context.palette.surface,
                       borderRadius: BorderRadius.circular(AppRadius.modal),
-                      border: Border.all(color: AppColors.line),
+                      border: Border.all(color: context.palette.line),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,7 +116,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 _obscurePassword
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: AppColors.textMuted,
+                                color: context.palette.textMuted,
                               ),
                               onPressed: () => setState(
                                 () => _obscurePassword = !_obscurePassword,
@@ -134,7 +144,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ),
                                 child: Text(
                                   'Recordarme',
-                                  style: AppTextStyles.muted,
+                                  style: AppTextStyles.muted(context),
                                 ),
                               ),
                             ),
@@ -153,7 +163,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 12),
                           Text(
                             auth.error!,
-                            style: const TextStyle(color: AppColors.alert),
+                            style: TextStyle(color: context.palette.alert),
                           ),
                         ],
                         const SizedBox(height: 12),
@@ -162,12 +172,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: ElevatedButton(
                             onPressed: auth.isSubmitting ? null : _submit,
                             child: auth.isSubmitting
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 18,
                                     height: 18,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: AppColors.inkText,
+                                      color: context.palette.inkText,
                                     ),
                                   )
                                 : const Text('Iniciar sesión'),

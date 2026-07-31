@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
 import '../../utils/format.dart';
 import '../auth/auth_provider.dart';
 import '../categories/categories_modal.dart';
@@ -117,7 +118,7 @@ Future<bool> _confirmLogout(BuildContext context) async {
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.danger,
+            backgroundColor: context.palette.danger,
             foregroundColor: Colors.white,
           ),
           onPressed: () => Navigator.pop(ctx, true),
@@ -153,13 +154,15 @@ String accountLabel(User? user) {
   return atIndex >= 0 ? email.substring(0, atIndex) : email;
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   const _Header({required this.onLogout});
 
   final VoidCallback onLogout;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final name = accountLabel(Supabase.instance.client.auth.currentUser);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -167,31 +170,51 @@ class _Header extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('LIBRO DE GASTOS', style: AppTextStyles.eyebrow),
+              Text('LIBRO DE GASTOS', style: AppTextStyles.eyebrow(context)),
               const SizedBox(height: 4),
-              Text('Mis gastos', style: AppTextStyles.h1),
+              Text('Mis gastos', style: AppTextStyles.h1(context)),
             ],
           ),
         ),
-        // Arriba a la derecha: identificador de la cuenta y, a su lado, el
-        // botón de salir.
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _AccountLabel(
-              label: accountLabel(Supabase.instance.client.auth.currentUser),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(
-                Icons.power_settings_new,
-                color: AppColors.textMuted,
+        // Arriba a la derecha: solo el ícono de usuario, disparador del menú
+        // de cuenta (nombre + selector de tema + cerrar sesión).
+        PopupMenuButton<void>(
+          tooltip: 'Cuenta',
+          position: PopupMenuPosition.under,
+          icon: Icon(Icons.person, color: context.palette.textMuted),
+          itemBuilder: (context) => [
+            // (a) Encabezado no seleccionable con el nombre de cuenta.
+            PopupMenuItem<void>(
+              enabled: false,
+              child: Text(
+                name.isEmpty ? 'Cuenta' : name,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: context.palette.text,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              onPressed: onLogout,
-              tooltip: 'Cerrar sesión',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              visualDensity: VisualDensity.compact,
+            ),
+            const PopupMenuDivider(),
+            // (b) Selector cápsula sol/luna (cambia el tema al instante y deja
+            // el menú abierto).
+            PopupMenuItem<void>(
+              enabled: false,
+              child: _ThemeCapsule(ref: ref),
+            ),
+            const PopupMenuDivider(),
+            // (c) Cerrar sesión (conserva la confirmación del spec 07).
+            PopupMenuItem<void>(
+              onTap: onLogout,
+              child: Row(
+                children: [
+                  Icon(Icons.power_settings_new,
+                      size: 18, color: context.palette.text),
+                  const SizedBox(width: 10),
+                  const Text('Cerrar sesión'),
+                ],
+              ),
             ),
           ],
         ),
@@ -200,38 +223,63 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Identificador de la cuenta: ícono de persona + texto (nombre o parte del
-/// email). Si no hay etiqueta, no se muestra nada. El texto se trunca con "…"
-/// en una sola línea dentro de un ancho acotado para no romper el header.
-class _AccountLabel extends StatelessWidget {
-  const _AccountLabel({required this.label});
+/// Cápsula de dos estados: sol (claro) y luna (oscuro). Refleja el `themeMode`
+/// activo y al tocar cambia el tema al instante. Vive dentro del menú de
+/// usuario; usa un `StatefulBuilder` + `GestureDetector` propio para alternar
+/// sin cerrar el menú.
+class _ThemeCapsule extends StatelessWidget {
+  const _ThemeCapsule({required this.ref});
 
-  final String label;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
-    if (label.isEmpty) return const SizedBox.shrink();
+    return StatefulBuilder(
+      builder: (context, setLocalState) {
+        // El menú vive en un overlay, fuera del build de `_Header`; leemos el
+        // valor actual (no `watch`) y repintamos localmente al alternar.
+        final palette = context.palette;
+        final mode = ref.read(themeProvider);
+        final isDark = mode == ThemeMode.dark;
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 160),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.person, size: 14, color: AppColors.textMuted),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textMuted,
+        Widget half(IconData icon, bool selected, ThemeMode target) {
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              ref.read(themeProvider.notifier).setMode(target);
+              // Repinta la cápsula sin cerrar el menú.
+              setLocalState(() {});
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: selected ? palette.ink : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Icon(
+                icon,
+                size: 18,
+                color: selected ? palette.inkText : palette.textMuted,
               ),
             ),
+          );
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: palette.surface2,
+            borderRadius: BorderRadius.circular(999),
           ),
-        ],
-      ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              half(Icons.light_mode, !isDark, ThemeMode.light),
+              half(Icons.dark_mode, isDark, ThemeMode.dark),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -247,9 +295,9 @@ class _MonthCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.line),
+        border: Border.all(color: context.palette.line),
       ),
       child: Row(
         children: [
@@ -274,8 +322,8 @@ class _MonthCard extends ConsumerWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('TOTAL DEL MES', style: AppTextStyles.sectionLabel),
-              Text(formatMoney(total), style: AppTextStyles.total),
+              Text('TOTAL DEL MES', style: AppTextStyles.sectionLabel(context)),
+              Text(formatMoney(total), style: AppTextStyles.total(context)),
             ],
           ),
         ],
@@ -293,7 +341,7 @@ class _MonthPickerButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surface2,
+      color: context.palette.surface2,
       borderRadius: BorderRadius.circular(9),
       child: InkWell(
         onTap: onTap,

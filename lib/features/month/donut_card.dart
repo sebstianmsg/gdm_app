@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import 'category_summary.dart';
 import 'donut_painter.dart';
 import 'legend_list.dart';
@@ -25,9 +25,9 @@ class DonutCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.line),
+        border: Border.all(color: context.palette.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,16 +36,16 @@ class DonutCard extends StatelessWidget {
             children: [
               Text(
                 'POR CATEGORÍA',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.2,
-                  color: AppColors.textMuted,
+                  color: context.palette.textMuted,
                 ),
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.edit, color: AppColors.textMuted),
+                icon: Icon(Icons.edit, color: context.palette.textMuted),
                 onPressed: onManageCategories,
                 tooltip: 'Agregar/Modificar categoría',
                 padding: EdgeInsets.zero,
@@ -96,17 +96,17 @@ class _AddButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.ink,
+      color: context.palette.ink,
       shape: const CircleBorder(),
       elevation: 6,
-      shadowColor: AppColors.ink,
+      shadowColor: context.palette.ink,
       child: InkWell(
         onTap: onPressed,
         customBorder: const CircleBorder(),
-        child: const SizedBox(
+        child: SizedBox(
           width: 96,
           height: 96,
-          child: Icon(Icons.add, color: AppColors.inkText, size: 40),
+          child: Icon(Icons.add, color: context.palette.inkText, size: 40),
         ),
       ),
     );

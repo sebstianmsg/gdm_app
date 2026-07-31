@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../theme/app_colors.dart';
+import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/animated_login_background.dart';
@@ -57,6 +57,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        // La AppBar flota sobre el fondo animado oscuro (idéntico en ambos
+        // temas), así que su texto/íconos se mantienen claros siempre.
+        foregroundColor: AppPalette.dark.text,
         title: const Text('Crear cuenta'),
       ),
       extendBodyBehindAppBar: true,
@@ -69,9 +72,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.palette.surface,
                   borderRadius: BorderRadius.circular(AppRadius.modal),
-                  border: Border.all(color: AppColors.line),
+                  border: Border.all(color: context.palette.line),
                 ),
                 child: _submitted
                     ? _buildConfirmationNotice(context)
@@ -89,8 +92,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.mark_email_read_outlined,
-            color: AppColors.ink, size: 40),
+        Icon(Icons.mark_email_read_outlined,
+            color: context.palette.ink, size: 40),
         const SizedBox(height: 16),
         Text(
           'Revisá tu email',
@@ -100,7 +103,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         Text(
           'Te enviamos un email a ${_emailController.text.trim()} para '
           'confirmar tu cuenta. Tocá el link del email para activarla.',
-          style: AppTextStyles.muted,
+          style: AppTextStyles.muted(context),
         ),
         const SizedBox(height: 20),
         SizedBox(
@@ -156,7 +159,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   _obscurePassword
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
-                  color: AppColors.textMuted,
+                  color: context.palette.textMuted,
                 ),
                 onPressed: () =>
                     setState(() => _obscurePassword = !_obscurePassword),
@@ -178,7 +181,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             const SizedBox(height: 12),
             Text(
               auth.error!,
-              style: const TextStyle(color: AppColors.alert),
+              style: TextStyle(color: context.palette.alert),
             ),
           ],
           const SizedBox(height: 20),
@@ -187,12 +190,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             child: ElevatedButton(
               onPressed: auth.isSubmitting ? null : _submit,
               child: auth.isSubmitting
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppColors.inkText,
+                        color: context.palette.inkText,
                       ),
                     )
                   : const Text('Crear cuenta'),
