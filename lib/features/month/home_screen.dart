@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
@@ -128,6 +129,30 @@ Future<bool> _confirmLogout(BuildContext context) async {
   return confirmed ?? false;
 }
 
+/// Resuelve el identificador de la cuenta a mostrar en el header, con la
+/// cascada: `user_metadata['full_name']` → `user_metadata['name']` (típico de
+/// Google) → parte del `email` anterior al `@`. Devuelve cadena vacía si no
+/// hay usuario ni datos utilizables (el widget entonces no se muestra).
+///
+/// Expuesto con [visibleForTesting] para poder probar la cascada por unidad;
+/// su uso está pensado solo dentro de este archivo.
+@visibleForTesting
+String accountLabel(User? user) {
+  if (user == null) return '';
+
+  final metadata = user.userMetadata;
+  final fullName = (metadata?['full_name'] as String?)?.trim();
+  if (fullName != null && fullName.isNotEmpty) return fullName;
+
+  final name = (metadata?['name'] as String?)?.trim();
+  if (name != null && name.isNotEmpty) return name;
+
+  final email = user.email?.trim() ?? '';
+  if (email.isEmpty) return '';
+  final atIndex = email.indexOf('@');
+  return atIndex >= 0 ? email.substring(0, atIndex) : email;
+}
+
 class _Header extends StatelessWidget {
   const _Header({required this.onLogout});
 
@@ -148,16 +173,65 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-        // Botón de salir flotando arriba a la derecha, alineado con el eyebrow.
-        IconButton(
-          icon: const Icon(Icons.power_settings_new, color: AppColors.textMuted),
-          onPressed: onLogout,
-          tooltip: 'Cerrar sesión',
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-          visualDensity: VisualDensity.compact,
+        // Arriba a la derecha: identificador de la cuenta y, a su lado, el
+        // botón de salir.
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _AccountLabel(
+              label: accountLabel(Supabase.instance.client.auth.currentUser),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(
+                Icons.power_settings_new,
+                color: AppColors.textMuted,
+              ),
+              onPressed: onLogout,
+              tooltip: 'Cerrar sesión',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+/// Identificador de la cuenta: ícono de persona + texto (nombre o parte del
+/// email). Si no hay etiqueta, no se muestra nada. El texto se trunca con "…"
+/// en una sola línea dentro de un ancho acotado para no romper el header.
+class _AccountLabel extends StatelessWidget {
+  const _AccountLabel({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    if (label.isEmpty) return const SizedBox.shrink();
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 160),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.person, size: 14, color: AppColors.textMuted),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
