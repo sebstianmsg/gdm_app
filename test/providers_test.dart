@@ -13,7 +13,7 @@ import 'package:gdm_app/models/expense.dart';
 import 'package:gdm_app/providers/core_providers.dart';
 
 Category _cat(String id, String name, {bool deletable = true}) =>
-    Category(id: id, name: name, color: '#FFFFFF', isDeletable: deletable);
+    Category(id: id, name: name, color: '#FFFFFF', icon: 'help', isDeletable: deletable);
 
 class _FakeCategoriesData implements CategoriesDataSource {
   _FakeCategoriesData(this._items);
@@ -25,14 +25,18 @@ class _FakeCategoriesData implements CategoriesDataSource {
   Future<List<Category>> list() async => _items;
 
   @override
-  Future<Category> create({required String name, required String color}) async {
+  Future<Category> create({
+    required String name,
+    required String color,
+    required String icon,
+  }) async {
     final c = _cat('new-$name', name);
     _items = [..._items, c];
     return c;
   }
 
   @override
-  Future<Category> update(String id, {String? name, String? color}) async =>
+  Future<Category> update(String id, {String? name, String? color, String? icon}) async =>
       _cat(id, name ?? 'x');
 
   @override

@@ -6,8 +6,12 @@ import '../models/category.dart';
 /// tests de providers sin depender del SDK real.
 abstract interface class CategoriesDataSource {
   Future<List<Category>> list();
-  Future<Category> create({required String name, required String color});
-  Future<Category> update(String id, {String? name, String? color});
+  Future<Category> create({
+    required String name,
+    required String color,
+    required String icon,
+  });
+  Future<Category> update(String id, {String? name, String? color, String? icon});
   Future<void> delete(String id, {required String otrosId});
 }
 
@@ -33,10 +37,19 @@ class CategoriesData implements CategoriesDataSource {
   }
 
   @override
-  Future<Category> create({required String name, required String color}) async {
+  Future<Category> create({
+    required String name,
+    required String color,
+    required String icon,
+  }) async {
     final row = await _client
         .from('categories')
-        .insert({'name': name, 'color': color, 'user_id': _userId})
+        .insert({
+          'name': name,
+          'color': color,
+          'icon': icon,
+          'user_id': _userId,
+        })
         .select()
         .single();
     return Category.fromJson(row);
@@ -44,12 +57,13 @@ class CategoriesData implements CategoriesDataSource {
 
   /// Actualización parcial: solo se mandan los campos presentes.
   @override
-  Future<Category> update(String id, {String? name, String? color}) async {
+  Future<Category> update(String id, {String? name, String? color, String? icon}) async {
     final row = await _client
         .from('categories')
         .update({
           if (name != null) 'name': name,
           if (color != null) 'color': color,
+          if (icon != null) 'icon': icon,
         })
         .eq('id', id)
         .select()

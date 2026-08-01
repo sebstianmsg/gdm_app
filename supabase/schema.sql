@@ -17,6 +17,7 @@ create table if not exists public.categories (
   id           uuid        primary key default gen_random_uuid(),
   name         text        not null,
   color        text        not null,
+  icon         text        not null default 'help',
   is_deletable boolean     not null default true,
   user_id      uuid        not null references auth.users (id) on delete cascade,
   created_at   timestamptz not null default now(),
@@ -78,15 +79,15 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.categories (name, color, is_deletable, user_id)
+  insert into public.categories (name, color, icon, is_deletable, user_id)
   values
-    ('Almacén',    '#FF6B6B', true,  new.id),
-    ('Comida',     '#FFD93D', true,  new.id),
-    ('Transporte', '#4D96FF', true,  new.id),
-    ('Servicios',  '#C77DFF', true,  new.id),
-    ('Salud',      '#6BCB77', true,  new.id),
-    ('Ocio',       '#00C9A7', true,  new.id),
-    ('Otros',      '#FF9A3C', false, new.id);
+    ('Almacén',    '#FF6B6B', 'basket', true,  new.id),
+    ('Comida',     '#FFD93D', 'fork',   true,  new.id),
+    ('Transporte', '#4D96FF', 'bus',    true,  new.id),
+    ('Servicios',  '#C77DFF', 'bolt',   true,  new.id),
+    ('Salud',      '#6BCB77', 'heart',  true,  new.id),
+    ('Ocio',       '#00C9A7', 'movie',  true,  new.id),
+    ('Otros',      '#FF9A3C', 'help',   false, new.id);
   return new;
 end;
 $$;

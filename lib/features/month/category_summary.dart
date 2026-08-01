@@ -30,6 +30,7 @@ List<CategorySummary> summarizeByCategory(
     id: '',
     name: 'Otros',
     color: '#8B968F',
+    icon: 'help',
     isDeletable: false,
   );
 

@@ -13,12 +13,24 @@ void main() {
         'id': 'cat-1',
         'name': 'Comida',
         'color': '#FFD93D',
+        'icon': 'fork',
         'is_deletable': true,
       });
       expect(c.id, 'cat-1');
       expect(c.name, 'Comida');
       expect(c.color, '#FFD93D');
+      expect(c.icon, 'fork');
       expect(c.isDeletable, isTrue);
+    });
+
+    test('icon ausente cae en el fallback "help"', () {
+      final c = Category.fromJson({
+        'id': 'cat-2',
+        'name': 'Vieja',
+        'color': '#000000',
+        'is_deletable': true,
+      });
+      expect(c.icon, 'help');
     });
 
     test('respeta is_deletable = false ("Otros")', () {

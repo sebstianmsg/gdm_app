@@ -6,6 +6,8 @@ import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../widgets/category_chip.dart';
 import 'categories_provider.dart';
+import 'category_editor_modal.dart';
+import 'category_icons.dart';
 
 /// Paleta para el selector de color (incluye los 7 colores default de
 /// `sql/schema.sql` + variantes extra).
@@ -31,53 +33,6 @@ Future<void> showCategoriesModal(BuildContext context) {
   );
 }
 
-Future<String?> _pickColor(
-  BuildContext context, {
-  required String current,
-  required Set<String> usedColors,
-}) {
-  final currentUpper = current.toUpperCase();
-
-  // Colores libres (no usados por ninguna categoría) + el color actual, que
-  // siempre queda visible aunque esté "en uso" por la propia categoría.
-  final swatches = _colorPalette
-      .where((hex) => hex.toUpperCase() == currentUpper || !usedColors.contains(hex.toUpperCase()))
-      .toList();
-  // Si el color actual no está en la paleta (ej. sembrado con otro hex),
-  // se agrega aparte para que siga siendo visible y seleccionable.
-  if (current.isNotEmpty && !swatches.any((hex) => hex.toUpperCase() == currentUpper)) {
-    swatches.insert(0, current);
-  }
-
-  return showDialog<String>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Elegir color'),
-      content: Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: swatches.map((hex) {
-          final color = colorFromHex(hex);
-          return GestureDetector(
-            onTap: () => Navigator.pop(context, hex),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                border: hex.toUpperCase() == currentUpper
-                    ? Border.all(color: Colors.white, width: 2)
-                    : null,
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    ),
-  );
-}
-
 class _CategoriesModalBody extends ConsumerStatefulWidget {
   const _CategoriesModalBody();
 
@@ -88,6 +43,7 @@ class _CategoriesModalBody extends ConsumerStatefulWidget {
 class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
   final _newNameController = TextEditingController();
   String _newColor = '#4FAE84';
+  String _newIcon = 'help';
   String? _error;
 
   @override
@@ -103,8 +59,50 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
       return;
     }
     setState(() => _error = null);
-    await ref.read(categoriesProvider.notifier).create(name: name, color: _newColor);
+    await ref.read(categoriesProvider.notifier).create(name: name, color: _newColor, icon: _newIcon);
     _newNameController.clear();
+  }
+
+  /// Abre el editor para elegir ícono/color (y nombre) del borrador de alta.
+  Future<void> _pickNewIconColor(Set<String> usedColors) async {
+    final draft = await showCategoryEditor(
+      context,
+      title: 'Nueva categoría',
+      saveLabel: 'Listo',
+      initialName: _newNameController.text,
+      initialColor: _newColor,
+      initialIcon: _newIcon,
+      palette: _colorPalette,
+      usedColors: usedColors,
+    );
+    if (draft == null) return;
+    setState(() {
+      _newColor = draft.color;
+      _newIcon = draft.icon;
+      _newNameController.text = draft.name;
+    });
+  }
+
+  Future<void> _editCategory(Category category, Set<String> usedColors) async {
+    // Los colores usados por OTRAS categorías se ocultan; el propio sigue visible.
+    final usedByOthers = usedColors.difference({category.color.toUpperCase()});
+    final draft = await showCategoryEditor(
+      context,
+      title: 'Editar categoría',
+      saveLabel: 'Guardar',
+      initialName: category.name,
+      initialColor: category.color,
+      initialIcon: category.icon,
+      palette: _colorPalette,
+      usedColors: usedByOthers,
+    );
+    if (draft == null) return;
+    await ref.read(categoriesProvider.notifier).updateCategory(
+          category.id,
+          name: draft.name,
+          color: draft.color,
+          icon: draft.icon,
+        );
   }
 
   Future<void> _confirmDelete(Category category) async {
@@ -165,44 +163,33 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
                 child: categoriesAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (e, _) => Center(child: Text('$e', style: TextStyle(color: context.palette.alert))),
-                  data: (categories) => ListView(
-                    controller: scrollController,
-                    children: categories.map((c) => _CategoryRow(
-                      category: c,
-                      onColorTap: () async {
-                        final hex = await _pickColor(context, current: c.color, usedColors: usedColors);
-                        if (hex != null) {
-                          await ref.read(categoriesProvider.notifier).updateCategory(c.id, color: hex);
-                        }
-                      },
-                      onNameChanged: (name) async {
-                        if (name.trim().isEmpty) return;
-                        await ref.read(categoriesProvider.notifier).updateCategory(c.id, name: name.trim());
-                      },
-                      onDelete: c.isDeletable ? () => _confirmDelete(c) : null,
-                    )).toList(),
+                  data: (categories) => ScrollConfiguration(
+                    // Se mantiene el scroll pero se oculta la barra visible.
+                    behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+                    child: ListView(
+                      controller: scrollController,
+                      children: categories.map((c) => _CategoryRow(
+                        category: c,
+                        onEdit: () => _editCategory(c, usedColors),
+                        onDelete: c.isDeletable ? () => _confirmDelete(c) : null,
+                      )).toList(),
+                    ),
                   ),
                 ),
               ),
               const Divider(height: 24),
               Row(
                 children: [
-                  GestureDetector(
-                    onTap: () async {
-                      final hex = await _pickColor(context, current: _newColor, usedColors: usedColors);
-                      if (hex != null) setState(() => _newColor = hex);
-                    },
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(color: colorFromHex(_newColor), shape: BoxShape.circle),
-                    ),
+                  _CategoryCircle(
+                    color: colorFromHex(_newColor),
+                    icon: Icons.add,
+                    onTap: () => _pickNewIconColor(usedColors),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
                       controller: _newNameController,
-                      decoration: const InputDecoration(hintText: 'Nombre de categoría'),
+                      decoration: const InputDecoration(hintText: 'Nombre de la categoría'),
                       onSubmitted: (_) => _create(),
                     ),
                   ),
@@ -229,43 +216,39 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
   }
 }
 
-class _CategoryRow extends StatefulWidget {
+/// Círculo de 44px con el color de la categoría y su ícono en blanco.
+/// `child` permite sobrescribir el contenido (ej. el `+` de la fila de alta).
+class _CategoryCircle extends StatelessWidget {
+  const _CategoryCircle({required this.color, required this.icon, this.onTap});
+
+  final Color color;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        child: Icon(icon, color: Colors.white, size: 22),
+      ),
+    );
+  }
+}
+
+class _CategoryRow extends StatelessWidget {
   const _CategoryRow({
     required this.category,
-    required this.onColorTap,
-    required this.onNameChanged,
+    required this.onEdit,
     required this.onDelete,
   });
 
   final Category category;
-  final VoidCallback onColorTap;
-  final ValueChanged<String> onNameChanged;
+  final VoidCallback onEdit;
   final VoidCallback? onDelete;
-
-  @override
-  State<_CategoryRow> createState() => _CategoryRowState();
-}
-
-class _CategoryRowState extends State<_CategoryRow> {
-  late final TextEditingController _controller;
-  late final FocusNode _focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.category.name);
-    _focusNode = FocusNode();
-    _focusNode.addListener(() {
-      if (!_focusNode.hasFocus) widget.onNameChanged(_controller.text);
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -273,30 +256,27 @@ class _CategoryRowState extends State<_CategoryRow> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: widget.onColorTap,
-            child: Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: colorFromHex(widget.category.color),
-                shape: BoxShape.circle,
-              ),
-            ),
+          _CategoryCircle(
+            color: colorFromHex(category.color),
+            icon: iconForKey(category.icon),
+            onTap: onEdit,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
-            child: TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              decoration: const InputDecoration(isDense: true),
-              onSubmitted: widget.onNameChanged,
+            child: Text(
+              category.name,
+              style: const TextStyle(fontSize: 15),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          if (widget.onDelete != null)
+          IconButton(
+            icon: Icon(Icons.edit_outlined, size: 20, color: context.palette.textMuted),
+            onPressed: onEdit,
+          ),
+          if (onDelete != null)
             IconButton(
               icon: Icon(Icons.close, size: 18, color: context.palette.textMuted),
-              onPressed: widget.onDelete,
+              onPressed: onDelete,
             ),
         ],
       ),

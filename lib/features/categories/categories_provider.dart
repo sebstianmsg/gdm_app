@@ -17,13 +17,17 @@ class CategoriesNotifier extends AsyncNotifier<List<Category>> {
     state = await AsyncValue.guard(() => _data.list());
   }
 
-  Future<void> create({required String name, required String color}) async {
-    await _data.create(name: name, color: color);
+  Future<void> create({
+    required String name,
+    required String color,
+    required String icon,
+  }) async {
+    await _data.create(name: name, color: color, icon: icon);
     await refresh();
   }
 
-  Future<void> updateCategory(String id, {String? name, String? color}) async {
-    await _data.update(id, name: name, color: color);
+  Future<void> updateCategory(String id, {String? name, String? color, String? icon}) async {
+    await _data.update(id, name: name, color: color, icon: icon);
     await refresh();
   }
 
