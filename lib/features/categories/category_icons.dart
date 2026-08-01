@@ -48,3 +48,103 @@ const kCategoryIcons = <String, IconData>{
 /// Devuelve el `IconData` de la clave, con fallback defensivo a `help_outline`
 /// ante claves desconocidas (datos viejos o fuera del catálogo).
 IconData iconForKey(String key) => kCategoryIcons[key] ?? Icons.help_outline;
+
+/// Diccionario **keyword → clave de ícono** (spec 13). Curado en español para
+/// gastos personales. Las keywords ya están normalizadas (minúsculas, sin
+/// acentos) para poder compararlas contra el nombre normalizado. El match es
+/// por **palabra contenida** en el nombre de la categoría (ver [suggestIconForName]).
+///
+/// Las claves de valor deben existir en [kCategoryIcons]; si no, se ignora la
+/// sugerencia y se cae en `help`.
+const kCategoryKeywordIcons = <String, String>{
+  // Transporte
+  'nafta': 'gas', 'combustible': 'gas', 'gas': 'gas', 'ypf': 'gas', 'shell': 'gas',
+  'bondi': 'bus', 'colectivo': 'bus', 'micro': 'bus', 'omnibus': 'bus', 'sube': 'bus',
+  'subte': 'subway', 'metro': 'subway',
+  'tren': 'train',
+  'taxi': 'taxi', 'remis': 'taxi', 'uber': 'taxi', 'cabify': 'taxi', 'didi': 'taxi',
+  'auto': 'car', 'cochera': 'parking', 'estacionamiento': 'parking', 'peaje': 'car',
+  'bici': 'bike', 'bicicleta': 'bike',
+  // Comida y bebida
+  'super': 'basket', 'supermercado': 'basket', 'almacen': 'basket', 'mercado': 'basket',
+  'compras': 'cart', 'kiosco': 'store', 'verduleria': 'grocery', 'carniceria': 'grocery',
+  'panaderia': 'cake', 'comida': 'fork', 'restaurante': 'fork', 'resto': 'fork',
+  'almuerzo': 'fork', 'cena': 'fork', 'delivery': 'fastfood', 'pedidosya': 'fastfood',
+  'rappi': 'fastfood', 'hamburguesa': 'fastfood', 'pizza': 'pizza', 'cafe': 'coffee',
+  'bar': 'bar', 'cerveza': 'bar', 'trago': 'bar', 'helado': 'icecream',
+  // Salud
+  'farmacia': 'pill', 'remedio': 'pill', 'remedios': 'pill', 'medicamento': 'pill',
+  'medico': 'medical', 'doctor': 'medical', 'salud': 'heart', 'obra social': 'heart',
+  'prepaga': 'heart', 'hospital': 'hospital', 'clinica': 'hospital', 'dentista': 'medical',
+  'gimnasio': 'muscle', 'gym': 'muscle', 'spa': 'spa',
+  // Hogar y servicios
+  'alquiler': 'home', 'expensas': 'home', 'hogar': 'home', 'casa': 'home',
+  'luz': 'bolt', 'electricidad': 'bolt', 'edenor': 'bolt', 'edesur': 'bolt',
+  'agua': 'water', 'aysa': 'water', 'gas natural': 'fire',
+  'internet': 'wifi', 'wifi': 'wifi', 'fibertel': 'wifi',
+  'telefono': 'phone', 'celular': 'phone', 'movistar': 'phone', 'personal': 'phone',
+  'claro': 'phone', 'cable': 'tv', 'limpieza': 'cleaning',
+  // Ocio
+  'cine': 'movie', 'pelicula': 'movie', 'netflix': 'tv', 'spotify': 'music',
+  'musica': 'music', 'juego': 'game', 'juegos': 'game', 'videojuego': 'game',
+  'futbol': 'sports', 'deporte': 'sports', 'fotografia': 'camera',
+  'libro': 'book', 'libros': 'book', 'libreria': 'book',
+  // Educación, trabajo, personal
+  'escuela': 'school', 'colegio': 'school', 'facultad': 'school', 'curso': 'school',
+  'educacion': 'school', 'trabajo': 'work', 'oficina': 'work',
+  'ferreteria': 'build', 'herramientas': 'build', 'regalo': 'gift', 'regalos': 'gift',
+  'mascota': 'paw', 'perro': 'paw', 'gato': 'paw', 'veterinaria': 'paw',
+  'bebe': 'child', 'ninos': 'child', 'ropa': 'checkroom', 'indumentaria': 'checkroom',
+  // Dinero
+  'banco': 'bank', 'tarjeta': 'card', 'ahorro': 'savings', 'ahorros': 'savings',
+  'billetera': 'wallet',
+};
+
+/// Normaliza un texto para comparar keywords: minúsculas y sin acentos/diéresis.
+/// No es exhaustivo: cubre las vocales acentuadas y la `ñ` habituales en español.
+String normalizeForIcon(String input) {
+  final lower = input.toLowerCase().trim();
+  const accents = {
+    'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u', 'ü': 'u', 'ñ': 'n',
+    'à': 'a', 'è': 'e', 'ì': 'i', 'ò': 'o', 'ù': 'u',
+  };
+  final buffer = StringBuffer();
+  for (final ch in lower.split('')) {
+    buffer.write(accents[ch] ?? ch);
+  }
+  return buffer.toString();
+}
+
+/// Sugiere una clave de ícono a partir del [name] de una categoría, usando
+/// [kCategoryKeywordIcons] con match por **palabra contenida** (tras normalizar).
+///
+/// Devuelve la clave sugerida (garantizada dentro de [kCategoryIcons]) o `null`
+/// si no hay match. Las keywords de una sola palabra matchean contra las
+/// palabras del nombre; las keywords con espacios (ej. `obra social`) matchean
+/// como subcadena del nombre completo.
+String? suggestIconForName(String name) {
+  final normalized = normalizeForIcon(name);
+  if (normalized.isEmpty) return null;
+  final words = normalized.split(RegExp(r'[^a-z0-9]+')).where((w) => w.isNotEmpty).toSet();
+  for (final entry in kCategoryKeywordIcons.entries) {
+    final keyword = entry.key;
+    final matches = keyword.contains(' ')
+        ? normalized.contains(keyword)
+        : words.contains(keyword);
+    if (matches && kCategoryIcons.containsKey(entry.value)) {
+      return entry.value;
+    }
+  }
+  return null;
+}
+
+/// Resuelve el ícono a **mostrar** para una categoría, aplicando el fallback
+/// del spec 13 sin tocar la DB: si [icon] es `help` (categoría vieja o sin
+/// ícono elegido) y el [name] matchea el diccionario, se usa la clave sugerida.
+/// En cualquier otro caso se respeta [icon] (el manual siempre gana).
+String resolveCategoryIcon(String icon, String name) {
+  if (icon == 'help') {
+    return suggestIconForName(name) ?? 'help';
+  }
+  return icon;
+}

@@ -258,7 +258,7 @@ class _CategoryRow extends StatelessWidget {
         children: [
           _CategoryCircle(
             color: colorFromHex(category.color),
-            icon: iconForKey(category.icon),
+            icon: iconForKey(resolveCategoryIcon(category.icon, category.name)),
             onTap: onEdit,
           ),
           const SizedBox(width: 12),

@@ -76,16 +76,38 @@ class _CategoryEditorBodyState extends State<_CategoryEditorBody> {
   late String _icon;
   String? _error;
 
+  /// `true` cuando el ícono fue elegido a mano (en "Símbolos") o venía ya
+  /// asignado en la categoría. Mientras sea `false`, el nombre sugiere el ícono.
+  late bool _iconIsManual;
+
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.initialName);
     _color = widget.initialColor;
     _icon = widget.initialIcon;
+    // El ícono `help` se considera "sin elegir": habilita la sugerencia por
+    // nombre. Cualquier otro valor inicial es un ícono ya asignado (manual).
+    _iconIsManual = widget.initialIcon != 'help';
+    _nameController.addListener(_onNameChanged);
+    _applySuggestionFromName();
   }
+
+  /// Si el usuario no eligió ícono a mano, preselecciona el sugerido por el
+  /// nombre actual (o vuelve a `help` si el nombre dejó de matchear).
+  void _applySuggestionFromName() {
+    if (_iconIsManual) return;
+    final suggested = suggestIconForName(_nameController.text) ?? 'help';
+    if (suggested != _icon) {
+      setState(() => _icon = suggested);
+    }
+  }
+
+  void _onNameChanged() => _applySuggestionFromName();
 
   @override
   void dispose() {
+    _nameController.removeListener(_onNameChanged);
     _nameController.dispose();
     super.dispose();
   }
@@ -150,7 +172,12 @@ class _CategoryEditorBodyState extends State<_CategoryEditorBody> {
               _SymbolsCarousel(
                 selected: _icon,
                 selectedColor: colorFromHex(_color),
-                onSelected: (key) => setState(() => _icon = key),
+                onSelected: (key) => setState(() {
+                  // Elegir en "Símbolos" fija el ícono a mano: la sugerencia por
+                  // nombre deja de pisarlo (el manual siempre gana).
+                  _icon = key;
+                  _iconIsManual = true;
+                }),
               ),
               const SizedBox(height: 20),
               const Text('Color', style: TextStyle(fontWeight: FontWeight.w700)),
@@ -229,11 +256,14 @@ class _SymbolsCarouselState extends State<_SymbolsCarousel> {
               final start = page * _perPage;
               final end = (start + _perPage).clamp(0, entries.length);
               final pageEntries = entries.sublist(start, end);
-              return GridView.count(
+              return GridView(
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 4,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  mainAxisExtent: 64,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 8,
+                ),
                 children: pageEntries.map((e) {
                   final isSel = e.key == widget.selected;
                   return Center(
