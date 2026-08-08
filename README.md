@@ -9,6 +9,13 @@ La autenticación soporta **registro y login por email/contraseña** (con
 confirmación por email), **login nativo con Google** y **recuperación de
 contraseña**, todo sobre Supabase Auth. Por ahora el foco es **Android**.
 
+La app tiene **tema claro y oscuro** (con selector sol/luna persistido en el
+dispositivo) y un **menú de usuario** en el header que muestra el nombre de la
+cuenta, el selector de tema y "Cerrar sesión". Cada **categoría** tiene **color +
+ícono**: el ícono se elige de un catálogo de ~56 símbolos Material o se
+**sugiere automáticamente a partir del nombre** (ej. "Nafta" → surtidor,
+"Farmacia" → pastilla).
+
 ## Requisitos
 
 - Flutter SDK (Dart `^3.12.2`).
@@ -25,8 +32,10 @@ contraseña**, todo sobre Supabase Auth. Por ahora el foco es **Android**.
    contenido de [`supabase/schema.sql`](supabase/schema.sql). Es idempotente y
    se corre una sola vez sobre una base limpia. Crea:
    - Tablas `categories` y `expenses` (con `user_id NOT NULL`, constraints y FKs).
+     `categories` incluye una columna `icon text not null default 'help'`.
    - Función `delete_category` (reasigna gastos a "Otros" y borra la categoría).
-   - Trigger `on_auth_user_created` que siembra 7 categorías default por usuario.
+   - Trigger `on_auth_user_created` que siembra 7 categorías default por usuario,
+     cada una con su color e ícono.
    - RLS + policies `auth.uid() = user_id` en ambas tablas.
 
 3. **Usuarios.** Ya no hace falta crearlos a mano: la app tiene registro por
@@ -146,5 +155,9 @@ Los tests **no** requieren credenciales de Supabase ni conexión real.
 - `lib/config/env.dart` — lectura de `--dart-define` (único punto de config).
 - `lib/data/` — capa de datos sobre el SDK (`categories_data.dart`, `expenses_data.dart`).
 - `lib/features/` — features de UI (`auth`, `month`, `expenses`, `categories`).
+  - `categories/category_icons.dart` — catálogo `kCategoryIcons` (~56 símbolos) + `iconForKey`.
+  - `categories/category_editor_modal.dart` — editor de categoría (carrusel de íconos + selector de color).
+- `lib/utils/category_keywords.dart` — diccionario keyword → ícono para la sugerencia automática por nombre.
+- `lib/theme/` — theming dual: `app_palette.dart` (`AppPalette` claro/oscuro), `app_theme.dart`, `theme_provider.dart` (persistido en `SharedPreferences`).
 - `lib/providers/core_providers.dart` — cliente Supabase y providers de datos.
 - `supabase/schema.sql` — schema consolidado de la base.

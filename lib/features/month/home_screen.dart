@@ -14,6 +14,7 @@ import '../expenses/expense_form.dart';
 import '../expenses/expenses_provider.dart';
 import 'category_summary.dart';
 import 'donut_card.dart';
+import 'home_carousel.dart';
 import 'month_provider.dart';
 import 'movements_card.dart';
 
@@ -54,22 +55,24 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 20),
               _MonthCard(month: month, total: total),
               const SizedBox(height: 16),
-              DonutCard(
-                summaries: summaries,
-                onManageCategories: () => showCategoriesModal(context),
-                onAddPressed: () => showAddExpenseSheet(
-                  context,
-                  categories: categories,
-                  onSubmit: (description, amount, date, categoryId) {
-                    ref
-                        .read(expensesProvider(month).notifier)
-                        .create(
-                          description: description,
-                          amount: amount,
-                          date: date,
-                          categoryId: categoryId,
-                        );
-                  },
+              HomeCarousel(
+                donut: DonutCard(
+                  summaries: summaries,
+                  onManageCategories: () => showCategoriesModal(context),
+                  onAddPressed: () => showAddExpenseSheet(
+                    context,
+                    categories: categories,
+                    onSubmit: (description, amount, date, categoryId) {
+                      ref
+                          .read(expensesProvider(month).notifier)
+                          .create(
+                            description: description,
+                            amount: amount,
+                            date: date,
+                            categoryId: categoryId,
+                          );
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 16),

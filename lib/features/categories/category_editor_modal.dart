@@ -227,8 +227,10 @@ class _SymbolsCarouselState extends State<_SymbolsCarousel> {
   void initState() {
     super.initState();
     // Abrir en la página del ícono seleccionado.
+    // 'help' es el ícono por defecto (última entrada); en ese caso abrimos
+    // en la primera página para que el listado empiece de izquierda a derecha.
     final keys = kCategoryIcons.keys.toList();
-    final idx = keys.indexOf(widget.selected);
+    final idx = widget.selected == 'help' ? -1 : keys.indexOf(widget.selected);
     _page = idx < 0 ? 0 : idx ~/ _perPage;
     _controller = PageController(initialPage: _page);
   }
