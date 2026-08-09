@@ -10,8 +10,10 @@ class Category {
   final String id;
   final String name;
 
-  /// Hex `#RRGGBB`. Siempre se pinta con este valor (viene de la DB y es
-  /// editable por el usuario) — nunca con constantes locales.
+  /// Hex `#RRGGBB` (viene de la DB y es editable por el usuario). El color a
+  /// **mostrar** en la UI pasa siempre por `displayCategoryColor` (en
+  /// `category_icons.dart`), que introduce la única excepción: la categoría
+  /// intocable "Otros" (`!isDeletable`) se pinta en un gris fijo solo visual.
   final String color;
 
   /// Clave del catálogo de íconos (ej. `'cart'`). Fallback `'help'` ante

@@ -257,9 +257,10 @@ class _CategoryRow extends StatelessWidget {
       child: Row(
         children: [
           _CategoryCircle(
-            color: colorFromHex(category.color),
+            color: colorFromHex(displayCategoryColor(category)),
             icon: iconForKey(resolveCategoryIcon(category.icon, category.name)),
-            onTap: onEdit,
+            // "Otros" (no borrable) es intocable: el círculo no abre el editor.
+            onTap: category.isDeletable ? onEdit : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -269,10 +270,12 @@ class _CategoryRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.edit_outlined, size: 20, color: context.palette.textMuted),
-            onPressed: onEdit,
-          ),
+          // "Otros" no muestra el lápiz de edición.
+          if (category.isDeletable)
+            IconButton(
+              icon: Icon(Icons.edit_outlined, size: 20, color: context.palette.textMuted),
+              onPressed: onEdit,
+            ),
           if (onDelete != null)
             IconButton(
               icon: Icon(Icons.close, size: 18, color: context.palette.textMuted),

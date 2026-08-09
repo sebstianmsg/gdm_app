@@ -1,5 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../../models/category.dart';
+
+/// Gris neutro con el que se pinta la categoría intocable "Otros"
+/// (no borrable). Es una anulación **solo visual**: no se persiste.
+const String kUntouchableCategoryColor = '#9AA0A6';
+
+/// Color hex a **mostrar** para una categoría: gris fijo si es la
+/// categoría intocable (`!isDeletable`), o su color real en cualquier
+/// otro caso. Centraliza la regla para toda la app.
+String displayCategoryColor(Category category) =>
+    category.isDeletable ? category.color : kUntouchableCategoryColor;
+
 /// Catálogo fijo de íconos de categoría: clave string estable (persistida en la
 /// columna `icon` de `categories`) → `IconData` de Material.
 ///

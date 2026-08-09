@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../categories/category_icons.dart';
 import 'category_summary.dart';
 
 Color _colorFromHex(String hex) {
@@ -43,7 +44,7 @@ class DonutPainter extends CustomPainter {
     for (final s in summaries) {
       final sweep = (s.percentage / 100) * 2 * math.pi;
       final paint = Paint()
-        ..color = _colorFromHex(s.category.color)
+        ..color = _colorFromHex(displayCategoryColor(s.category))
         ..style = PaintingStyle.stroke
         ..strokeWidth = ringThickness;
       // Pequeño gap entre slices, como el prototipo (evita que se vean pegados).

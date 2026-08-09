@@ -6,6 +6,7 @@ import '../../theme/app_palette.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
 import '../../widgets/category_chip.dart';
+import '../categories/category_icons.dart';
 
 /// Una fila de movimiento. En modo lectura: punto + descripción + chip +
 /// monto + lápiz/✕. En modo edición se transforma en inputs inline (mismo
@@ -94,7 +95,7 @@ class _ExpenseRowState extends State<ExpenseRow> {
   }
 
   Color get _dotColor => widget.category != null
-      ? colorFromHex(widget.category!.color)
+      ? colorFromHex(displayCategoryColor(widget.category!))
       : context.palette.textMuted;
 
   @override

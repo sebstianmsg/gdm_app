@@ -5,6 +5,7 @@ import '../../models/expense.dart';
 import '../../theme/app_palette.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
+import '../categories/category_icons.dart';
 import '../expenses/expense_row.dart';
 import 'movements_grouping.dart';
 
@@ -107,7 +108,7 @@ class _MovementsCardState extends State<MovementsCard> {
             ),
             const SizedBox(height: 6),
             Text(
-              'agregá un gasto desde el + para empezar el mes',
+              'Agregá un gasto desde el + para empezar',
               style: TextStyle(color: context.palette.textMuted, fontSize: 13),
               textAlign: TextAlign.center,
             ),
@@ -163,7 +164,7 @@ class _MovementsCardState extends State<MovementsCard> {
                         margin: const EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
                           color: Color(
-                            int.parse('FF${g.category!.color.replaceFirst('#', '')}', radix: 16),
+                            int.parse('FF${displayCategoryColor(g.category!).replaceFirst('#', '')}', radix: 16),
                           ),
                           shape: BoxShape.circle,
                         ),

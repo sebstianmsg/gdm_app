@@ -4,6 +4,7 @@ import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/format.dart';
+import '../categories/category_icons.dart';
 import 'category_summary.dart';
 
 Color _colorFromHex(String hex) {
@@ -24,7 +25,7 @@ class LegendList extends StatelessWidget {
       spacing: 16,
       runSpacing: 14,
       children: summaries.map((s) {
-        final color = _colorFromHex(s.category.color);
+        final color = _colorFromHex(displayCategoryColor(s.category));
         return SizedBox(
           width: 220,
           child: Column(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../features/categories/category_icons.dart';
 import '../models/category.dart';
 import '../theme/app_radius.dart';
 
@@ -17,7 +18,7 @@ class CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = colorFromHex(category.color);
+    final color = colorFromHex(displayCategoryColor(category));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
