@@ -5,6 +5,17 @@ import 'category_summary.dart';
 import 'donut_painter.dart';
 import 'legend_list.dart';
 
+// Violeta claro para el texto "Más detalles" en modo oscuro.
+// Tinte claro del acento morado (ink #64009D), legible sobre el
+// fondo oscuro de la card (#1F0A30).
+const Color _masDetallesDarkText = Color(0xFFC6A3E8);
+
+// Color del texto según el tema: negro en claro, violeta claro en oscuro.
+Color _masDetallesColor(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? _masDetallesDarkText
+        : const Color(0xFF000000); // negro
+
 /// Tarjeta "Por categoría": donut (SVG-equivalente vía CustomPainter) con
 /// botón "+" central que abre el alta de gasto, y debajo la leyenda.
 /// Réplica de `.donut-card` / `#catSummary` en `public/index.html`.
@@ -80,9 +91,69 @@ class DonutCard extends StatelessWidget {
           ),
           if (summaries.isNotEmpty) ...[
             const SizedBox(height: 24),
-            LegendList(summaries: summaries),
+            _MoreDetailsButton(
+              onPressed: () => _showLegendSheet(context, summaries),
+            ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// Abre un modal bottom sheet con el título "Por categoría" y la LegendList.
+void _showLegendSheet(BuildContext context, List<CategorySummary> summaries) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: context.palette.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+    ),
+    builder: (context) {
+      return SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'POR CATEGORÍA',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                  color: context.palette.textMuted,
+                ),
+              ),
+              const SizedBox(height: 16),
+              LegendList(summaries: summaries),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _MoreDetailsButton extends StatelessWidget {
+  const _MoreDetailsButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: TextButton(
+        onPressed: onPressed,
+        child: Text(
+          'Más detalles',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: _masDetallesColor(context),
+          ),
+        ),
       ),
     );
   }
