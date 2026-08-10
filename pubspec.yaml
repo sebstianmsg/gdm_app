@@ -46,6 +46,10 @@ dependencies:
   google_sign_in: ^6.2.1
   # Persistencia local del flag "Recordarme".
   shared_preferences: ^2.3.2
+  # Notificaciones locales del sistema (recordatorios de facturas, spec 16).
+  flutter_local_notifications: ^18.0.1
+  # Zonas horarias para programar notificaciones con zonedSchedule.
+  timezone: ^0.10.0
 
 dev_dependencies:
   flutter_test:

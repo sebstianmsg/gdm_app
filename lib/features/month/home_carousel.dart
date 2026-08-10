@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_palette.dart';
+import '../reminders/reminders_card.dart';
 import '../shared/shared_card.dart';
 import 'donut_card.dart';
 
@@ -68,7 +69,7 @@ class _HomeCarouselState extends State<HomeCarousel> {
         final pages = <Widget>[
           widget.donut,
           const SharedCard(),
-          const _ComingSoonCard(),
+          const RemindersCard(),
         ];
 
         return Column(
@@ -140,61 +141,3 @@ class _Dots extends StatelessWidget {
   }
 }
 
-/// Card 3: placeholder "Próximamente" (se refina en el paso 11).
-class _ComingSoonCard extends StatelessWidget {
-  const _ComingSoonCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final muted = context.palette.textMuted;
-    return _CarouselCard(
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.auto_awesome_outlined,
-                size: 44, color: muted.withValues(alpha: 0.4)),
-            const SizedBox(height: 14),
-            Text(
-              'Próximamente',
-              style: TextStyle(
-                color: muted.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Algo nuevo está en camino',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: muted.withValues(alpha: 0.6),
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Contenedor de card con el mismo estilo visual que la `DonutCard`.
-class _CarouselCard extends StatelessWidget {
-  const _CarouselCard({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: context.palette.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: context.palette.line),
-      ),
-      child: child,
-    );
-  }
-}

@@ -8,6 +8,7 @@ import 'package:gdm_app/models/expense.dart';
 import 'package:gdm_app/models/partnership.dart';
 import 'package:gdm_app/models/partner_invite.dart';
 import 'package:gdm_app/models/shared_expense.dart';
+import 'package:gdm_app/models/bill_reminder.dart';
 
 void main() {
   group('Category.fromJson', () {
@@ -233,6 +234,134 @@ void main() {
       expect(json['created_by'], 'aaa');
       expect(json['date'], '2026-01-05');
       expect(json.containsKey('paidBy'), isFalse);
+    });
+  });
+
+  group('BillReminder.fromJson / toJson', () {
+    Map<String, dynamic> row({
+      Object? amount = '1500.00',
+      String kind = 'service',
+      int startDay = 10,
+      Object? paidCycle,
+      bool active = true,
+    }) => {
+      'id': 'br-1',
+      'name': 'Luz',
+      'kind': kind,
+      'amount': amount,
+      'category_id': 'cat-serv',
+      'start_day': startDay,
+      'due_day': 15,
+      'notify_hour': 9,
+      'notify_minute': 30,
+      'persistent': true,
+      'repeat_monthly': true,
+      'paid_cycle': paidCycle,
+      'active': active,
+    };
+
+    test('mapea snake_case, parsea monto y kind', () {
+      final r = BillReminder.fromJson(row());
+      expect(r.id, 'br-1');
+      expect(r.name, 'Luz');
+      expect(r.kind, ReminderKind.service);
+      expect(r.amount, 1500.0);
+      expect(r.categoryId, 'cat-serv');
+      expect(r.startDay, 10);
+      expect(r.dueDay, 15);
+      expect(r.notifyHour, 9);
+      expect(r.notifyMinute, 30);
+      expect(r.persistent, isTrue);
+      expect(r.repeatMonthly, isTrue);
+      expect(r.paidCycle, isNull);
+      expect(r.active, isTrue);
+    });
+
+    test('mapea kinds card y debt', () {
+      expect(BillReminder.fromJson(row(kind: 'card')).kind, ReminderKind.card);
+      expect(BillReminder.fromJson(row(kind: 'debt')).kind, ReminderKind.debt);
+    });
+
+    test('kind inválido lanza FormatException', () {
+      expect(() => BillReminder.fromJson(row(kind: 'x')), throwsFormatException);
+    });
+
+    test('toCreateJson emite snake_case sin id/paid_cycle/active', () {
+      final r = BillReminder.fromJson(row());
+      final json = r.toCreateJson();
+      expect(json['name'], 'Luz');
+      expect(json['kind'], 'service');
+      expect(json['category_id'], 'cat-serv');
+      expect(json['start_day'], 10);
+      expect(json['notify_minute'], 30);
+      expect(json.containsKey('id'), isFalse);
+      expect(json.containsKey('paid_cycle'), isFalse);
+      expect(json.containsKey('active'), isFalse);
+    });
+  });
+
+  group('BillReminder.startDateFor (clamp al último día del mes)', () {
+    BillReminder withStartDay(int day) => BillReminder(
+      id: 'br',
+      name: 'x',
+      kind: ReminderKind.service,
+      amount: 1,
+      categoryId: 'c',
+      startDay: day,
+      dueDay: day,
+      notifyHour: 8,
+      notifyMinute: 5,
+      persistent: false,
+      repeatMonthly: true,
+      paidCycle: null,
+      active: true,
+    );
+
+    test('día que existe se respeta con hora/minuto', () {
+      expect(withStartDay(10).startDateFor(2026, 3), DateTime(2026, 3, 10, 8, 5));
+    });
+
+    test('día 31 en abril (30 días) hace clamp a 30', () {
+      expect(withStartDay(31).startDateFor(2026, 4), DateTime(2026, 4, 30, 8, 5));
+    });
+
+    test('día 31 en febrero no bisiesto hace clamp a 28', () {
+      expect(withStartDay(31).startDateFor(2026, 2), DateTime(2026, 2, 28, 8, 5));
+    });
+
+    test('día 29 en febrero bisiesto (2028) se respeta', () {
+      expect(withStartDay(29).startDateFor(2028, 2), DateTime(2028, 2, 29, 8, 5));
+    });
+
+    test('día 29 en febrero no bisiesto hace clamp a 28', () {
+      expect(withStartDay(29).startDateFor(2026, 2), DateTime(2026, 2, 28, 8, 5));
+    });
+  });
+
+  group('BillReminder.isPaidForCycle / cycleOf', () {
+    test('cycleOf formatea YYYY-MM con cero a la izquierda', () {
+      expect(cycleOf(2026, 8), '2026-08');
+      expect(cycleOf(2026, 12), '2026-12');
+    });
+
+    test('isPaidForCycle compara paid_cycle con el ciclo', () {
+      final paid = BillReminder.fromJson({
+        'id': 'br-2',
+        'name': 'x',
+        'kind': 'card',
+        'amount': 100,
+        'category_id': 'c',
+        'start_day': 5,
+        'due_day': 5,
+        'notify_hour': 0,
+        'notify_minute': 0,
+        'persistent': false,
+        'repeat_monthly': true,
+        'paid_cycle': '2026-08',
+        'active': true,
+      });
+      expect(paid.isPaidForCycle('2026-08'), isTrue);
+      expect(paid.isPaidForCycle('2026-09'), isFalse);
     });
   });
 }

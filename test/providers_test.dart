@@ -8,9 +8,12 @@ import 'package:gdm_app/data/categories_data.dart';
 import 'package:gdm_app/data/expenses_data.dart';
 import 'package:gdm_app/features/categories/categories_provider.dart';
 import 'package:gdm_app/features/expenses/expenses_provider.dart';
+import 'package:gdm_app/models/bill_reminder.dart';
 import 'package:gdm_app/models/category.dart';
 import 'package:gdm_app/models/expense.dart';
 import 'package:gdm_app/providers/core_providers.dart';
+
+import 'support/fake_bill_reminders_data.dart';
 
 Category _cat(String id, String name, {bool deletable = true}) =>
     Category(id: id, name: name, color: '#FFFFFF', icon: 'help', isDeletable: deletable);
@@ -169,6 +172,69 @@ void main() {
       expect(list, hasLength(1));
       expect(list.single.description, 'Café');
       expect(fake.listCalls, [month]);
+    });
+  });
+
+  group('FakeBillRemindersData (contrato de la capa)', () {
+    BillReminder reminder({
+      String id = 'br-x',
+      bool repeatMonthly = true,
+      String? paidCycle,
+      bool active = true,
+      int startDay = 10,
+    }) => BillReminder(
+      id: id,
+      name: 'Luz',
+      kind: ReminderKind.service,
+      amount: 1000,
+      categoryId: 'c',
+      startDay: startDay,
+      dueDay: 15,
+      notifyHour: 9,
+      notifyMinute: 0,
+      persistent: false,
+      repeatMonthly: repeatMonthly,
+      paidCycle: paidCycle,
+      active: active,
+    );
+
+    test('list ordena por start_day', () async {
+      final fake = FakeBillRemindersData([
+        reminder(id: 'a', startDay: 20),
+        reminder(id: 'b', startDay: 5),
+      ]);
+      final list = await fake.list();
+      expect(list.map((r) => r.id), ['b', 'a']);
+    });
+
+    test('markPaid setea paid_cycle y mantiene activo si repite', () async {
+      final fake = FakeBillRemindersData([reminder(id: 'r1', repeatMonthly: true)]);
+      final updated = await fake.markPaid('r1', '2026-08');
+      expect(updated.paidCycle, '2026-08');
+      expect(updated.active, isTrue);
+      expect(fake.markPaidCalls.single, (id: 'r1', cycle: '2026-08'));
+    });
+
+    test('markPaid desactiva si NO repite', () async {
+      final fake = FakeBillRemindersData([reminder(id: 'r2', repeatMonthly: false)]);
+      final updated = await fake.markPaid('r2', '2026-08');
+      expect(updated.paidCycle, '2026-08');
+      expect(updated.active, isFalse);
+    });
+
+    test('rollToNewCycle limpia paid_cycle de repeat_monthly de ciclos previos', () async {
+      final fake = FakeBillRemindersData([
+        reminder(id: 'prev', repeatMonthly: true, paidCycle: '2026-07'),
+        reminder(id: 'curr', repeatMonthly: true, paidCycle: '2026-08'),
+        reminder(id: 'norepeat', repeatMonthly: false, paidCycle: '2026-07'),
+      ]);
+      final rolled = await fake.rollToNewCycle('2026-08');
+      expect(rolled.map((r) => r.id), ['prev']);
+
+      final list = await fake.list();
+      expect(list.firstWhere((r) => r.id == 'prev').paidCycle, isNull);
+      expect(list.firstWhere((r) => r.id == 'curr').paidCycle, '2026-08');
+      expect(list.firstWhere((r) => r.id == 'norepeat').paidCycle, '2026-07');
     });
   });
 }

@@ -12,6 +12,7 @@ import '../categories/categories_provider.dart';
 import '../expenses/delete_expense_dialog.dart';
 import '../expenses/expense_form.dart';
 import '../expenses/expenses_provider.dart';
+import '../reminders/reminders_startup.dart';
 import 'category_summary.dart';
 import 'donut_card.dart';
 import 'home_carousel.dart';
@@ -25,6 +26,9 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Re-programa las notificaciones de recordatorios al abrir la app (spec 16,
+    // pasos 7-8). Se resuelve en segundo plano; no bloquea el render.
+    ref.watch(remindersStartupSyncProvider);
     final month = ref.watch(selectedMonthProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final expensesAsync = ref.watch(expensesProvider(month));
