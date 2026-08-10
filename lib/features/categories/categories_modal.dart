@@ -5,6 +5,7 @@ import '../../models/category.dart';
 import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../widgets/category_chip.dart';
+import '../expenses/expenses_provider.dart';
 import 'categories_provider.dart';
 import 'category_editor_modal.dart';
 import 'category_icons.dart';
@@ -125,6 +126,10 @@ class _CategoriesModalBodyState extends ConsumerState<_CategoriesModalBody> {
     );
     if (confirmed == true) {
       await ref.read(categoriesProvider.notifier).delete(category.id);
+      // La RPC reasignó los gastos de la categoría borrada a "Otros" en la DB;
+      // invalidamos la caché de gastos (todos los meses) para que se recarguen
+      // con el nuevo category_id y no queden con el id huérfano de la categoría.
+      ref.invalidate(expensesProvider);
     }
   }
 

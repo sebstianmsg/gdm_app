@@ -188,7 +188,12 @@ class _ExpenseRowState extends State<ExpenseRow> {
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            initialValue: _categoryId,
+            // Si el gasto quedó con un category_id que ya no existe (categoría
+            // borrada), no lo pasamos como value para no romper el assert del
+            // dropdown; el usuario debe elegir una categoría válida.
+            initialValue: widget.categories.any((c) => c.id == _categoryId)
+                ? _categoryId
+                : null,
             items: widget.categories
                 .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                 .toList(),

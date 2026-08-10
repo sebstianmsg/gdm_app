@@ -132,7 +132,9 @@ class _AddExpenseFormState extends State<_AddExpenseForm> {
           ),
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(
-            initialValue: _categoryId,
+            initialValue: widget.categories.any((c) => c.id == _categoryId)
+                ? _categoryId
+                : null,
             items: widget.categories
                 .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                 .toList(),
