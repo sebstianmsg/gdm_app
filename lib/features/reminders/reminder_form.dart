@@ -224,10 +224,14 @@ class _ReminderFormState extends ConsumerState<_ReminderForm> {
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(hintText: 'Monto'),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
+            Text('Categoría', style: TextStyle(color: palette.textMuted)),
+            const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _categoryId,
-              decoration: const InputDecoration(labelText: 'Categoría'),
+              decoration: const InputDecoration(
+                hintText: 'Selecciona una categoría',
+              ),
               items: widget.categories
                   .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                   .toList(),
