@@ -21,16 +21,17 @@ class LegendList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 14,
-      children: summaries.map((s) {
-        final color = _colorFromHex(displayCategoryColor(s.category));
-        return SizedBox(
-          width: 220,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < summaries.length; i++) ...[
+          if (i > 0) const SizedBox(height: 14),
+          Builder(builder: (context) {
+            final s = summaries[i];
+            final color = _colorFromHex(displayCategoryColor(s.category));
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Row(
                 children: [
                   Container(
@@ -69,9 +70,10 @@ class LegendList extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        );
-      }).toList(),
+          );
+          }),
+        ],
+      ],
     );
   }
 }

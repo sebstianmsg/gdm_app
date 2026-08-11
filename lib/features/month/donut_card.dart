@@ -106,6 +106,7 @@ void _showLegendSheet(BuildContext context, List<CategorySummary> summaries) {
   showModalBottomSheet<void>(
     context: context,
     backgroundColor: context.palette.surface,
+    constraints: const BoxConstraints(minWidth: double.infinity),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
     ),
