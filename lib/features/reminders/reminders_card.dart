@@ -12,6 +12,10 @@ import 'reminders_provider.dart';
 /// texto blanco en ambos temas, igual que hacía el verde de PAGO.
 const Color _kPendingAmber = Color(0xFFB45309);
 
+/// Verde de PAGO (spec 16). Reutilizado como color del barrido de llenado que
+/// se pinta sobre el chip ámbar al tocarlo para marcarlo pagado (spec 20).
+const Color _kPagoGreen = Color(0xFF2E7D32);
+
 /// Ícono del tipo de recordatorio (solo visual).
 IconData iconForKind(ReminderKind kind) {
   switch (kind) {
@@ -210,38 +214,90 @@ class _PaidBadge extends StatelessWidget {
 }
 
 /// Chip "Pendiente" (ámbar, texto blanco), accionable: al tocarlo marca el
-/// recordatorio como pagado (misma acción de spec 16, `payReminder`).
-class _PendingChip extends ConsumerWidget {
+/// recordatorio como pagado (misma acción de spec 16, `payReminder`). Al tocar
+/// una vez, pinta un barrido verde de izquierda a derecha (~400 ms, spec 20) y
+/// dispara `payReminder` en paralelo; al completarse, la card lo reemplaza por
+/// el badge "Pagado".
+class _PendingChip extends ConsumerStatefulWidget {
   const _PendingChip({required this.reminder});
 
   final BillReminder reminder;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PendingChip> createState() => _PendingChipState();
+}
+
+class _PendingChipState extends ConsumerState<_PendingChip>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 400),
+  );
+  bool _paying = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTap() {
+    // Chip deshabilitado mientras corre la animación: se ignoran toques
+    // repetidos para no pagar dos veces (spec 20).
+    if (_paying) return;
+    setState(() => _paying = true);
+    // Pago en paralelo (opción A): se dispara al iniciar el toque, junto con la
+    // animación, sin await bloqueante.
+    payReminder(context, ref, widget.reminder);
+    _controller.forward();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Material(
       color: _kPendingAmber,
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: () => payReminder(context, ref, reminder),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.schedule, size: 14, color: Colors.white),
-              SizedBox(width: 4),
-              Text(
-                'Pendiente',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  letterSpacing: 0.5,
+        onTap: _onTap,
+        child: Stack(
+          children: [
+            // Barrido verde de izquierda a derecha por encima del fondo ámbar.
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) => FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: _controller.value,
+                    child: child,
+                  ),
+                  child: const ColoredBox(color: _kPagoGreen),
                 ),
               ),
-            ],
-          ),
+            ),
+            // Contenido "Pendiente" (reloj + texto), siempre visible por encima.
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.schedule, size: 14, color: Colors.white),
+                  SizedBox(width: 4),
+                  Text(
+                    'Pendiente',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
