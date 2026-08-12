@@ -20,8 +20,8 @@ class DonutPainter extends CustomPainter {
   final List<CategorySummary> summaries;
 
   static const _viewBox = 400.0;
-  static const _outerRadius = 160.0;
-  static const _innerRadius = 72.0;
+  static const _outerRadius = 196.0;
+  static const _innerRadius = 74.0;
 
   @override
   void paint(Canvas canvas, Size size) {
