@@ -8,9 +8,9 @@ import 'reminder_form.dart';
 import 'reminder_pay.dart';
 import 'reminders_provider.dart';
 
-/// Verde del botón PAGO (spec 16). Fijo para garantizar contraste con el texto
-/// blanco en ambos temas (el `success` de la paleta es un verde neón).
-const Color _kPagoGreen = Color(0xFF2E7D32);
+/// Ámbar del chip "Pendiente" (spec 19). Fijo para garantizar contraste con el
+/// texto blanco en ambos temas, igual que hacía el verde de PAGO.
+const Color _kPendingAmber = Color(0xFFB45309);
 
 /// Ícono del tipo de recordatorio (solo visual).
 IconData iconForKind(ReminderKind kind) {
@@ -26,7 +26,7 @@ IconData iconForKind(ReminderKind kind) {
 
 /// Card 3 del carrusel (spec 16): recordatorios de facturas a pagar. Reemplaza
 /// el placeholder "Próximamente". Encabezado + botón `+`, lista scrolleable
-/// interna dentro del alto fijo, estado vacío, y cada fila con su botón PAGO.
+/// interna dentro del alto fijo, estado vacío, y cada fila con su chip "Pendiente".
 class RemindersCard extends ConsumerWidget {
   const RemindersCard({super.key});
 
@@ -112,9 +112,9 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-/// Fila de un recordatorio. Al tocar (fuera del botón PAGO) abre el formulario
-/// para editar/borrar. Si está pagado este ciclo, se muestra "apagado" con la
-/// etiqueta "Pagado" en vez del botón PAGO.
+/// Fila de un recordatorio. Al tocar (fuera del chip "Pendiente") abre el
+/// formulario para editar/borrar. Si está pagado este ciclo, se muestra
+/// "apagado" con la etiqueta "Pagado" en vez del chip "Pendiente".
 class _ReminderTile extends ConsumerWidget {
   const _ReminderTile({required this.view});
 
@@ -171,7 +171,7 @@ class _ReminderTile extends ConsumerWidget {
             if (isPaid)
               _PaidBadge()
             else
-              _PagoButton(reminder: r),
+              _PendingChip(reminder: r),
           ],
         ),
       ),
@@ -209,30 +209,38 @@ class _PaidBadge extends StatelessWidget {
   }
 }
 
-/// Botón PAGO (verde, texto blanco). La acción se cablea en el paso 11.
-class _PagoButton extends ConsumerWidget {
-  const _PagoButton({required this.reminder});
+/// Chip "Pendiente" (ámbar, texto blanco), accionable: al tocarlo marca el
+/// recordatorio como pagado (misma acción de spec 16, `payReminder`).
+class _PendingChip extends ConsumerWidget {
+  const _PendingChip({required this.reminder});
 
   final BillReminder reminder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Material(
-      color: _kPagoGreen,
+      color: _kPendingAmber,
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
         onTap: () => payReminder(context, ref, reminder),
         child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Text(
-            'PAGO',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 13,
-              letterSpacing: 0.5,
-            ),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.schedule, size: 14, color: Colors.white),
+              SizedBox(width: 4),
+              Text(
+                'Pendiente',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         ),
       ),
