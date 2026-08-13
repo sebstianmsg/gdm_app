@@ -1,6 +1,6 @@
 # 04 — Donut más grande y responsive, ajustado al ancho de la tarjeta
 
-**Estado:** Approved
+**Estado:** Implementado
 **Fecha:** 2026-07-27
 **Dependencias:** SPEC 03
 

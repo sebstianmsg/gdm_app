@@ -41,7 +41,13 @@ class AuthState {
 /// reinicios y emite cambios por `onAuthStateChange`. No hay storage manual de
 /// tokens ni chequeo local de expiración.
 class AuthNotifier extends Notifier<AuthState> {
-  GoTrueClient get _auth => Supabase.instance.client.auth;
+  /// Permite inyectar un doble del cliente de auth en tests. En producción
+  /// queda `null` y se usa el cliente real del SDK (`Supabase.instance`).
+  AuthNotifier({GoTrueClient? authClient}) : _authOverride = authClient;
+
+  final GoTrueClient? _authOverride;
+
+  GoTrueClient get _auth => _authOverride ?? Supabase.instance.client.auth;
 
   /// Emite cuando llega un deep link de recuperación (`passwordRecovery`), para
   /// que la UI enrute a `reset_password_screen` sin navegar al home. Se resuelve
@@ -82,11 +88,16 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> login(
     String email,
     String password, {
+    required String captchaToken,
     bool rememberMe = false,
   }) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
-      await _auth.signInWithPassword(email: email, password: password);
+      await _auth.signInWithPassword(
+        email: email,
+        password: password,
+        captchaToken: captchaToken,
+      );
       // Persistir la preferencia antes de marcar autenticado: el chequeo de
       // "Recordarme" al arranque lee esta clave para decidir si desloguear.
       final prefs = await SharedPreferences.getInstance();
@@ -108,8 +119,9 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> signUpWithEmail(
     String name,
     String email,
-    String password,
-  ) async {
+    String password, {
+    required String captchaToken,
+  }) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
       await _auth.signUp(
@@ -117,6 +129,7 @@ class AuthNotifier extends Notifier<AuthState> {
         password: password,
         data: {'full_name': name},
         emailRedirectTo: 'com.gdmapp://login-callback',
+        captchaToken: captchaToken,
       );
       // Alta ok pero sin sesión (falta confirmar). Volvemos a un estado no
       // autenticado y sin submitting; la UI muestra "revisá tu email".
@@ -177,12 +190,16 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Envía el email de recuperación con el deep link de reset.
-  Future<void> sendPasswordReset(String email) async {
+  Future<void> sendPasswordReset(
+    String email, {
+    required String captchaToken,
+  }) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
       await _auth.resetPasswordForEmail(
         email,
         redirectTo: 'com.gdmapp://reset-password',
+        captchaToken: captchaToken,
       );
       state = state.copyWith(isSubmitting: false, clearError: true);
     } on AuthException catch (e) {
@@ -212,6 +229,24 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  /// El widget de captcha caducó su token antes de enviarse. Reutilizamos
+  /// `error` del `AuthState` para mostrar un mensaje legible sin cerrar la app.
+  void reportCaptchaExpired() {
+    state = state.copyWith(
+      isSubmitting: false,
+      error: 'El captcha expiró, reintentá.',
+    );
+  }
+
+  /// El widget de captcha falló al cargar/resolver (sin red, WebView bloqueada,
+  /// host de Cloudflare inaccesible). Mensaje legible reutilizando `error`.
+  void reportCaptchaError() {
+    state = state.copyWith(
+      isSubmitting: false,
+      error: 'No pudimos verificar que no sos un robot. Reintentá.',
+    );
+  }
+
   Future<void> logout() async {
     await _auth.signOut();
     state = const AuthState(status: AuthStatus.unauthenticated);
@@ -229,6 +264,10 @@ class AuthNotifier extends Notifier<AuthState> {
     if (msg.contains('already registered') ||
         msg.contains('already been registered')) {
       return 'Ese email ya está registrado.';
+    }
+    // Supabase rechaza el token (ausente, ya usado, secret mal cargado, etc.).
+    if (msg.contains('captcha')) {
+      return 'No pudimos verificar el captcha. Reintentá.';
     }
     return e.message;
   }

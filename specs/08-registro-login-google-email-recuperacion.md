@@ -1,6 +1,6 @@
 # SPEC 08 — Registro, login con Google y email, confirmación y recuperación de contraseña
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** SPEC 01 (auth sobre supabase_flutter, env.dart, _AuthGate), SPEC 03 (paleta morada / theme), SPEC 06 (AnimatedLoginBackground del login)
 > **Fecha:** 2026-07-28
 > **Objetivo:** Extender la autenticación login-only a un flujo completo de cuentas independientes: alta por email (nombre + email + contraseña) con confirmación por deep link, login con email/contraseña, login nativo con Google, recuperación de contraseña por email, y un checkbox "Recordarme" que controla si la sesión persiste al reabrir la app.

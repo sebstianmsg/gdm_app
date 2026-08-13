@@ -1,6 +1,6 @@
 # 05 — Ícono de app y splash logo
 
-**Estado:** Approved
+**Estado:** Implementado
 **Fecha:** 2026-07-27
 **Dependencias:** SPEC 03 (paleta morada `#64009D`)
 

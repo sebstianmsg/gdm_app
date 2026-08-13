@@ -1,6 +1,6 @@
 # 20 — Chip "Pendiente": animación de llenado verde al tocar para marcar pagado
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** spec 19 (`_PendingChip` en `reminders_card.dart`, `_PaidBadge`, `_kPendingAmber`, acción `payReminder`), spec 16 (lógica de PAGO / ciclo / notificaciones), spec 11 (`context.palette`, tema claro/oscuro)
 > **Fecha:** 2026-08-11
 > **Objetivo (una frase):** Al tocar una vez el chip ámbar "Pendiente" de la card 3, reproducir una animación rápida (~400 ms) de llenado verde de izquierda a derecha y, al completarse, mostrar la etiqueta "Pagado", disparando el pago real (`payReminder`) en paralelo desde el inicio del toque.

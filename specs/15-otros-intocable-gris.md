@@ -1,6 +1,6 @@
 # 15 — "Otros" intocable: sin editar y en gris
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** spec 01 (categoría "Otros" no borrable, `is_deletable=false`, `delete_category` reasigna a Otros), spec 12 (columna `icon`, círculo color+ícono, lápiz de edición en cada fila), spec 11 (`AppPalette`/`context.palette`)
 > **Fecha:** 2026-08-09
 > **Objetivo (una frase):** Que la categoría no borrable "Otros" (detectada por `isDeletable == false`) quede **totalmente intocable** en la UI —sin lápiz, sin abrir el editor al tocar su círculo, sin cambio de nombre— y se **pinte siempre en un gris neutro** (anulación solo visual, sin tocar la DB) en **toda la app** donde se represente su color.

@@ -1,6 +1,6 @@
 # 09 — Renombrar título del login "Gastos del mes" → "Mis gastos"
 
-**Estado:** Approved
+**Estado:** Implementado
 **Dependencias:** spec 06 (background del login), spec 08 (registro/login)
 **Fecha:** 2026-07-31
 **Objetivo (una frase):** Cambiar el título visible de la pantalla de login de "Gastos del mes" a "Mis gastos".

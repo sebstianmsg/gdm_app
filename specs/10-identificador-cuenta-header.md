@@ -1,6 +1,6 @@
 # 10 — Identificador de cuenta en el header
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** spec 03 (paleta morada / header `_Header` en `home_screen.dart`), spec 08 (auth: `user_metadata.full_name`, login con Google)
 > **Fecha:** 2026-07-31
 > **Objetivo (una frase):** Mostrar en el header de la pantalla principal, debajo del botón de cerrar sesión, un identificador de la cuenta con ícono de persona, que use el nombre de usuario registrado y, si no existe, la parte del email anterior al `@`.

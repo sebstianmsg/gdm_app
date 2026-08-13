@@ -5,10 +5,12 @@
 // así el test no depende de inicializar el SDK de Supabase (que usa canales
 // nativos no disponibles en `flutter test`).
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:gdm_app/features/auth/auth_provider.dart';
+import 'package:gdm_app/features/auth/captcha_field.dart';
 import 'package:gdm_app/main.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
@@ -17,6 +19,13 @@ class _FakeAuthNotifier extends AuthNotifier {
 }
 
 void main() {
+  // El login ahora incluye el CaptchaField, que monta un WebView sin
+  // plataforma en `flutter test`. Lo reemplazamos por un stub inerte.
+  setUp(() {
+    CaptchaField.debugBuilder = (context, field) => const SizedBox.shrink();
+  });
+  tearDown(() => CaptchaField.debugBuilder = null);
+
   testWidgets('Muestra la pantalla de login al arrancar sin sesión', (
     WidgetTester tester,
   ) async {

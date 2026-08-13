@@ -1,6 +1,6 @@
 # SPEC 07 — Confirmación al cerrar sesión
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** SPEC 03 (paleta morada / estructura de theme)
 > **Fecha:** 2026-07-28
 > **Objetivo:** Al tocar el botón de salir en el home, mostrar un `AlertDialog` de confirmación con opciones "Cancelar" y "Cerrar sesión" (destructiva), ejecutando el `logout()` solo si el usuario confirma.

@@ -1,6 +1,6 @@
 # 11 — Tema claro y menú de usuario con selector de tema
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** spec 03 (paleta morada, `AppColors`, `AppTheme.dark`, header `_Header`), spec 06 (fondo animado del login), spec 07 (confirmación de cerrar sesión), spec 08 (`SharedPreferences`, `user_metadata`), spec 10 (identificador de cuenta en el header)
 > **Fecha:** 2026-07-31
 > **Objetivo (una frase):** Agregar un modo claro (fondos blancos, botones morados con texto blanco) que convive con el modo oscuro actual mediante `ThemeData` + `ThemeExtension` y un `themeProvider` Riverpod persistido, y reemplazar el logout/identificador del header por un ícono de usuario que despliega un menú anclado con el nombre de cuenta, un selector cápsula sol/luna y "Cerrar sesión".

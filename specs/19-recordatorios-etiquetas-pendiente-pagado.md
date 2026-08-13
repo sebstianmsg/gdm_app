@@ -1,6 +1,6 @@
 # 19 — Recordatorios: etiquetas "Pendiente" (chip ámbar) y "Pagado"
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** spec 16 (Card 3 de recordatorios: `reminders_card.dart`, `_PagoButton`, `_PaidBadge`, constante `_kPagoGreen`, acción `payReminder`), spec 11 (`context.palette`, tema claro/oscuro)
 > **Fecha:** 2026-08-11
 > **Objetivo (una frase):** En la card 3 de recordatorios, renombrar el botón verde "PAGO" a un chip accionable **"Pendiente"** con **ícono de reloj** y color **ámbar/naranja** (para que el color comunique "aún no pagado" y no se lea como "hecho"), conservando la acción de marcar pagado al tocarlo, y dejando la etiqueta resuelta **"Pagado"** exactamente como está.

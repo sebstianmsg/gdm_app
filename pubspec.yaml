@@ -50,6 +50,8 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   # Zonas horarias para programar notificaciones con zonedSchedule.
   timezone: ^0.10.0
+  # Captcha de Cloudflare Turnstile en los flujos de auth por email (spec 22).
+  flutter_turnstile: ^1.0.0
 
 dev_dependencies:
   flutter_test:

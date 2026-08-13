@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_turnstile/flutter_turnstile.dart';
 
 import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
@@ -7,6 +8,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/animated_login_background.dart';
 import 'auth_provider.dart';
 import 'auth_validators.dart';
+import 'captcha_field.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -21,9 +23,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
+  final _captchaController = TurnstileController();
   bool _obscurePassword = true;
   // Cuando el alta es exitosa, mostramos el aviso de "revisá tu email".
   bool _submitted = false;
+  // Token de Turnstile (uso único): null ⇒ botón deshabilitado.
+  String? _captchaToken;
 
   @override
   void dispose() {
@@ -31,22 +36,34 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
+    _captchaController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final token = _captchaToken;
+    if (token == null) return;
     final notifier = ref.read(authProvider.notifier);
     await notifier.signUpWithEmail(
       _nameController.text.trim(),
       _emailController.text.trim(),
       _passwordController.text,
+      captchaToken: token,
     );
-    // Solo mostramos el aviso si no quedó un error en el estado.
     if (!mounted) return;
+    // El token es de un solo uso: reseteamos el widget tras el envío (éxito o
+    // error) para obtener uno nuevo antes de reintentar.
+    _resetCaptcha();
+    // Solo mostramos el aviso si no quedó un error en el estado.
     if (ref.read(authProvider).error == null) {
       setState(() => _submitted = true);
     }
+  }
+
+  void _resetCaptcha() {
+    _captchaController.refreshToken();
+    if (mounted) setState(() => _captchaToken = null);
   }
 
   @override
@@ -177,6 +194,19 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             validator: (v) =>
                 AuthValidators.confirmPassword(v, _passwordController.text),
           ),
+          const SizedBox(height: 12),
+          CaptchaField(
+            controller: _captchaController,
+            onToken: (token) => setState(() => _captchaToken = token),
+            onExpired: () {
+              setState(() => _captchaToken = null);
+              ref.read(authProvider.notifier).reportCaptchaExpired();
+            },
+            onError: (_) {
+              setState(() => _captchaToken = null);
+              ref.read(authProvider.notifier).reportCaptchaError();
+            },
+          ),
           if (auth.error != null) ...[
             const SizedBox(height: 12),
             Text(
@@ -188,7 +218,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: auth.isSubmitting ? null : _submit,
+              onPressed: auth.isSubmitting || _captchaToken == null
+                  ? null
+                  : _submit,
               child: auth.isSubmitting
                   ? SizedBox(
                       width: 18,

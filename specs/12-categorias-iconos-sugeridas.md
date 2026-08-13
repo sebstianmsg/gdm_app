@@ -1,6 +1,6 @@
 # 12 — Categorías con íconos y rediseño
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** spec 01 (Supabase directo, `schema.sql`, trigger `handle_new_user`, `delete_category`), spec 02 (paleta de 32 colores y regla de "no repetir" en el selector), spec 11 (`AppPalette`/tema por contexto, `context.palette`)
 > **Fecha:** 2026-08-01
 > **Objetivo (una frase):** Rediseñar la gestión de categorías para que cada categoría tenga **color + ícono** (clave string persistida en una columna nueva `icon` de `categories`), con un modal de edición que incluye un **carrusel paginado de ~56 íconos Material relacionados con gastos personales** (8 por página) y el selector de "Color" (32 colores, regla no-repetir), una lista sin barra de scroll visible, y una fila de alta cuyo círculo muestra un **`+`**.

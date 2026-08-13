@@ -1,6 +1,6 @@
 # 16 — Recordatorios de facturas + botón PAGO → gasto automático
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** spec 01 (Supabase directo, `schema.sql`, RLS por `user_id`, `expenses`, categoría "Otros"), spec 12 (columna `icon`, `resolveCategoryIcon`, carrusel de íconos, `formatMoney`), spec 14 (`HomeCarousel`: la **card 3 "Próximamente"** es el hueco que ocupa esta feature; `selectedMonthProvider`, patrón `expense_form.dart`), spec 15 (`displayCategoryColor`, `context.palette`)
 > **Fecha:** 2026-08-09
 > **Objetivo (una frase):** Reemplazar el placeholder "Próximamente" de la **card 3** por una lista de **recordatorios de facturas a pagar** (servicio/tarjeta/deuda) que disparan una **notificación local del sistema Android** en la fecha de inicio a una hora elegida —con opción de hacerla **persistente (no se descarta deslizando)** y de **repetir todos los meses**—, y un botón verde **PAGO** que, al tocarse, crea automáticamente el gasto en la categoría preelegida (alimentando el donut/TOTAL DEL MES) y archiva el recordatorio hasta el próximo ciclo.

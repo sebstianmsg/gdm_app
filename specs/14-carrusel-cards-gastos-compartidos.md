@@ -1,6 +1,6 @@
 # 14 — Carrusel de cards + gastos compartidos
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** spec 01 (Supabase directo, `schema.sql`, RLS por `user_id`, trigger `handle_new_user`), spec 04 (donut grande/responsive, `DonutCard`), spec 08 (auth email/Google, `user_metadata.full_name`), spec 11 (`AppPalette`/tema por contexto, `context.palette`), spec 12 (dots + `PageView` del carrusel de íconos como referencia visual; `formatMoney`)
 > **Fecha:** 2026-08-01
 > **Objetivo (una frase):** Convertir la card del donut en un **carrusel deslizable horizontal de 3 cards de alto fijo** con **3 puntitos indicadores debajo** (card 1 = donut actual sin cambios; card 2 = **gastos compartidos** completos con otra persona vía código de invitación, balance informativo por mes y lista scrolleable interna; card 3 = placeholder "Próximamente"), dejando **intactos** la MovementsCard, el total personal y el donut.

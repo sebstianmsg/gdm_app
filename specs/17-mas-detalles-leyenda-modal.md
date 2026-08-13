@@ -1,6 +1,6 @@
 # SPEC 17 — "Más detalles": leyenda de gastos en ventana aparte
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** spec 04 (`DonutCard`, donut grande/responsive), spec 11 (`AppPalette`/`context.palette`, tema claro/oscuro), spec 14 (`DonutCard` vive dentro de `HomeCarousel` como card 1), spec 15 (`displayCategoryColor` usado por `LegendList`)
 > **Fecha:** 2026-08-10
 > **Objetivo (una frase):** Sacar la leyenda de categorías de debajo del donut y mostrarla en un **modal bottom sheet** que se abre con un botón de texto "Más detalles" —visible solo cuando hay gastos— ubicado debajo del donut.

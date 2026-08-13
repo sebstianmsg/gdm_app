@@ -1,6 +1,6 @@
 # SPEC 21 — Donut más grande: agrandar el radio del anillo para que llene su caja
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Depende de:** SPEC 04, SPEC 03
 > **Fecha:** 2026-08-11
 > **Objetivo:** Agrandar el radio del anillo del donut en `donut_painter.dart` (de `_outerRadius` 160 a ~196 sobre el viewBox de 400, subiendo `_innerRadius` a ~88 para conservar la proporción del grosor) para que el gráfico llene casi toda su caja cuadrada y deje de verse chico en el teléfono, manteniendo fijos el botón "+" (96×96) y el tamaño de los números de porcentaje (20px).

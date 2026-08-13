@@ -1,6 +1,6 @@
 # 13 — Ícono automático de categoría por nombre
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Dependencias:** spec 12 (columna `icon`, catálogo `kCategoryIcons`/`iconForKey`, editor de categoría con picker manual de "Símbolos")
 > **Fecha:** 2026-08-01
 > **Objetivo (una frase):** Que la app **sugiera/asigne automáticamente un ícono acorde al nombre** de la categoría (ej. "Nafta"→`gas`, "Farmacia"→`pill`), tanto al crear una categoría nueva como fallback en runtime para categorías viejas que hoy quedan en `help` (`?`), sin obligar a un UPDATE manual en la base y manteniendo la posibilidad de cambiar el ícono a mano.

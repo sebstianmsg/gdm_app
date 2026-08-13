@@ -84,6 +84,45 @@ requiere **dos** OAuth clients en **APIs & Services → Credentials**:
 > SHA-1 mal cargado, el package name distinto, o el Web client ID no coincidente
 > entre `GOOGLE_SERVER_CLIENT_ID` y el provider de Supabase.
 
+## Setup de Cloudflare Turnstile (captcha anti-bots)
+
+Los tres flujos de auth **por email** —registro, login y recuperación de
+contraseña— exigen resolver un captcha de **Cloudflare Turnstile** antes de
+enviar. El widget se renderiza en la app con `flutter_turnstile` y Supabase Auth
+valida el token server-side. **El login con Google no lleva captcha** (no pasa
+por los endpoints de email).
+
+1. **Creá el widget en Cloudflare.** En el dashboard de Cloudflare →
+   **Turnstile → Add widget**: elegí un nombre y agregá el/los dominios (para
+   apps móviles alcanza con un dominio dummy, p. ej. `localhost`). Dejá el
+   **Widget Mode** en **Managed** (recomendado, casi invisible). Cloudflare te
+   da dos claves:
+   - **Site key** (pública) → va en la app como `TURNSTILE_SITE_KEY`.
+   - **Secret key** (privada) → va **solo** en Supabase (paso siguiente). Nunca
+     se versiona ni se pasa por `--dart-define`.
+
+2. **Cargá el secret en Supabase.** En **Authentication → Settings → Bot & Abuse
+   Protection**: habilitá **Enable Captcha protection**, elegí **Cloudflare
+   Turnstile** como proveedor y pegá el **Turnstile secret key**. Supabase usa
+   ese secret para validar el token contra Cloudflare en cada `signUp`,
+   `signInWithPassword` y `resetPasswordForEmail`.
+
+3. **Pasá la site key a la app** vía `--dart-define=TURNSTILE_SITE_KEY=...` (ver
+   sección siguiente).
+
+> **⚠️ Orden de activación (deploy).** Activá el captcha en Supabase **recién
+> cuando** la app que envía el `captchaToken` (este cambio) esté desplegada. Si
+> lo activás antes, todos los logins/altas/resets por email fallan con "captcha
+> protection required".
+
+> **Probar sin cuenta de Cloudflare (llaves de test).** Para destrabar el
+> arranque sin crear el widget real, Cloudflare provee llaves de prueba: como
+> **site key** en la app usá `1x00000000000000000000AA` (siempre pasa),
+> `2x00000000000000000000AB` (siempre falla) o `3x00000000000000000000FF`
+> (fuerza el challenge); como **secret** en Supabase, `1x0000000000000000000000000000000AA`.
+> Sirven para ver que la app arranca y que la UI del captcha funciona; para auth
+> real hacen falta las llaves reales de los pasos 1 y 2.
+
 ## Configuración de la app (`--dart-define`)
 
 Las credenciales **no se versionan**: se pasan en run/build time con
@@ -94,7 +133,8 @@ un mensaje claro si falta alguna.
 flutter run \
   --dart-define=SUPABASE_URL=https://tu-proyecto.supabase.co \
   --dart-define=SUPABASE_ANON_KEY=tu_anon_key \
-  --dart-define=GOOGLE_SERVER_CLIENT_ID=xxxx.apps.googleusercontent.com
+  --dart-define=GOOGLE_SERVER_CLIENT_ID=xxxx.apps.googleusercontent.com \
+  --dart-define=TURNSTILE_SITE_KEY=0x4AAAAAAA...
 ```
 
 | Variable | Valor |
@@ -102,6 +142,7 @@ flutter run \
 | `SUPABASE_URL` | Project URL de Supabase. |
 | `SUPABASE_ANON_KEY` | `anon public` key de Supabase. |
 | `GOOGLE_SERVER_CLIENT_ID` | **Web** client ID de Google Cloud (el mismo del provider Google en Supabase). |
+| `TURNSTILE_SITE_KEY` | **Site key pública** de Cloudflare Turnstile (el **secret** va solo en Supabase). |
 
 ## Deep links (Android)
 
@@ -130,7 +171,7 @@ Run/Debug Configuration:
 3. En **Additional run args** (o *Additional arguments*), agregá:
 
    ```
-   --dart-define=SUPABASE_URL=https://tu-proyecto.supabase.co --dart-define=SUPABASE_ANON_KEY=tu_anon_key --dart-define=GOOGLE_SERVER_CLIENT_ID=xxxx.apps.googleusercontent.com
+   --dart-define=SUPABASE_URL=https://tu-proyecto.supabase.co --dart-define=SUPABASE_ANON_KEY=tu_anon_key --dart-define=GOOGLE_SERVER_CLIENT_ID=xxxx.apps.googleusercontent.com --dart-define=TURNSTILE_SITE_KEY=0x4AAAAAAA...
    ```
 
 4. Elegí el emulador/dispositivo y presioná **Run** (▶).
@@ -147,6 +188,10 @@ Incluye:
 - Tests de los providers / capa de datos con dobles inyectados.
 - Validaciones de los formularios de auth (nombre, email, contraseña, confirmación).
 - Transiciones de estado del `AuthNotifier` (`isSubmitting` / `error` / éxito).
+- Gating del captcha: el botón de envío está bloqueado sin token y se habilita
+  al resolverlo, en registro, login y forgot-password.
+- Propagación del `captchaToken` del `AuthNotifier` a las llamadas del SDK
+  (`signUp` / `signInWithPassword` / `resetPasswordForEmail`), con dobles inyectados.
 
 Los tests **no** requieren credenciales de Supabase ni conexión real.
 

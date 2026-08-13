@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_turnstile/flutter_turnstile.dart';
 
 import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/animated_login_background.dart';
 import 'auth_provider.dart';
+import 'captcha_field.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 
@@ -19,21 +21,36 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _captchaController = TurnstileController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  // Token de Turnstile (uso único): null ⇒ botón deshabilitado.
+  String? _captchaToken;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _captchaController.dispose();
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-    if (email.isEmpty || password.isEmpty) return;
-    ref.read(authProvider.notifier).login(email, password, rememberMe: _rememberMe);
+    final token = _captchaToken;
+    if (email.isEmpty || password.isEmpty || token == null) return;
+    await ref
+        .read(authProvider.notifier)
+        .login(email, password, captchaToken: token, rememberMe: _rememberMe);
+    // El token es de un solo uso: reseteamos el widget para obtener uno nuevo
+    // antes de reintentar (éxito o error).
+    _resetCaptcha();
+  }
+
+  void _resetCaptcha() {
+    _captchaController.refreshToken();
+    if (mounted) setState(() => _captchaToken = null);
   }
 
   void _openSignup() {
@@ -159,6 +176,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: const Text('¿Olvidaste tu contraseña?'),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        CaptchaField(
+                          controller: _captchaController,
+                          onToken: (token) =>
+                              setState(() => _captchaToken = token),
+                          onExpired: () {
+                            setState(() => _captchaToken = null);
+                            ref
+                                .read(authProvider.notifier)
+                                .reportCaptchaExpired();
+                          },
+                          onError: (_) {
+                            setState(() => _captchaToken = null);
+                            ref
+                                .read(authProvider.notifier)
+                                .reportCaptchaError();
+                          },
+                        ),
                         if (auth.error != null) ...[
                           const SizedBox(height: 12),
                           Text(
@@ -170,7 +205,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: auth.isSubmitting ? null : _submit,
+                            onPressed:
+                                auth.isSubmitting || _captchaToken == null
+                                ? null
+                                : _submit,
                             child: auth.isSubmitting
                                 ? SizedBox(
                                     width: 18,

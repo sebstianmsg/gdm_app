@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_turnstile/flutter_turnstile.dart';
 
 import '../../theme/app_palette.dart';
 import '../../theme/app_radius.dart';
@@ -7,6 +8,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/animated_login_background.dart';
 import 'auth_provider.dart';
 import 'auth_validators.dart';
+import 'captcha_field.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -19,23 +21,37 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
+  final _captchaController = TurnstileController();
   bool _sent = false;
+  // Token de Turnstile (uso único): null ⇒ botón deshabilitado.
+  String? _captchaToken;
 
   @override
   void dispose() {
     _emailController.dispose();
+    _captchaController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final token = _captchaToken;
+    if (token == null) return;
     await ref
         .read(authProvider.notifier)
-        .sendPasswordReset(_emailController.text.trim());
+        .sendPasswordReset(_emailController.text.trim(), captchaToken: token);
     if (!mounted) return;
+    // El token es de un solo uso: reseteamos el widget tras el envío (éxito o
+    // error) para obtener uno nuevo antes de reintentar.
+    _resetCaptcha();
     if (ref.read(authProvider).error == null) {
       setState(() => _sent = true);
     }
+  }
+
+  void _resetCaptcha() {
+    _captchaController.refreshToken();
+    if (mounted) setState(() => _captchaToken = null);
   }
 
   @override
@@ -127,6 +143,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             decoration: const InputDecoration(hintText: 'Email'),
             validator: AuthValidators.email,
           ),
+          const SizedBox(height: 12),
+          CaptchaField(
+            controller: _captchaController,
+            onToken: (token) => setState(() => _captchaToken = token),
+            onExpired: () {
+              setState(() => _captchaToken = null);
+              ref.read(authProvider.notifier).reportCaptchaExpired();
+            },
+            onError: (_) {
+              setState(() => _captchaToken = null);
+              ref.read(authProvider.notifier).reportCaptchaError();
+            },
+          ),
           if (auth.error != null) ...[
             const SizedBox(height: 12),
             Text(auth.error!, style: TextStyle(color: context.palette.alert)),
@@ -135,7 +164,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: auth.isSubmitting ? null : _submit,
+              onPressed: auth.isSubmitting || _captchaToken == null
+                  ? null
+                  : _submit,
               child: auth.isSubmitting
                   ? SizedBox(
                       width: 18,
