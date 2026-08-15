@@ -42,12 +42,12 @@ class AppPalette extends ThemeExtension<AppPalette> {
 
   /// Paleta oscura: valores idénticos a los `AppColors` actuales.
   static const dark = AppPalette(
-    bg: Color(0xFF0B0610),
-    surface: Color(0xFF180826),
-    card: Color(0xFF1F0A30),
+    bg: Color(0xFF140A1F),
+    surface: Color(0xFF1F1030),
+    card: Color(0xFF271438),
     btn: Color(0xFF1B0929),
     btnHover: Color(0xFF260C3A),
-    surface2: Color(0xFF260C3A),
+    surface2: Color(0xFF2E1A42),
     line: Color(0x12FFFFFF),
     ink: Color(0xFF64009D),
     inkText: Color(0xFFFFFFFF),
