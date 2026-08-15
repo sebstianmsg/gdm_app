@@ -1,6 +1,6 @@
 {
-    "name": "gdm_app",
-    "short_name": "gdm_app",
+    "name": "Gastos del mes",
+    "short_name": "Gastos del mes",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#64009D",

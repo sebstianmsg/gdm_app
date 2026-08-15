@@ -1,6 +1,6 @@
 # SPEC 22 — Captcha (Cloudflare Turnstile) en el registro y flujos de auth por email
 
-> **Estado:** Approved
+> **Estado:** Implementado
 > **Depende de:** SPEC 08 (registro/login/reset por email sobre Supabase Auth, `AuthNotifier`, deep links), SPEC 01 (`env.dart`, cliente Supabase)
 > **Fecha:** 2026-08-11
 > **Objetivo:** Exigir un token de Cloudflare Turnstile —renderizado con `flutter_turnstile` y validado por Supabase Auth— en las llamadas de `signUp`, `signInWithPassword` y `resetPasswordForEmail`, para frenar el alta y el abuso automatizado de cuentas por bots, sin afectar el login con Google.

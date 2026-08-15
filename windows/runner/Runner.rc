@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.gdm" "\0"
-            VALUE "FileDescription", "gdm_app" "\0"
+            VALUE "FileDescription", "Gastos del mes" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "gdm_app" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.gdm. All rights reserved." "\0"
             VALUE "OriginalFilename", "gdm_app.exe" "\0"
-            VALUE "ProductName", "gdm_app" "\0"
+            VALUE "ProductName", "Gastos del mes" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

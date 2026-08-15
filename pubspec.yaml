@@ -73,29 +73,31 @@ dependency_overrides:
   path_provider_android: 2.2.17
 
 flutter_launcher_icons:
-  image_path: "resources/art/icon.png"
+  image_path: "resources/art/newdis/icon_full.png"
   android: true
   ios: true
+  remove_alpha_ios: true
   web:
     generate: true
-    image_path: "resources/art/icon.png"
+    image_path: "resources/art/newdis/icon_full.png"
     background_color: "#64009D"
     theme_color: "#64009D"
   windows:
     generate: true
-    image_path: "resources/art/icon.png"
+    image_path: "resources/art/newdis/icon_full.png"
   macos:
     generate: true
-    image_path: "resources/art/icon.png"
-  adaptive_icon_foreground: "resources/art/icon.png"
-  adaptive_icon_background: "#64009D"
+    image_path: "resources/art/newdis/icon_full.png"
+  adaptive_icon_foreground: "resources/art/newdis/icon_foreground.png"
+  adaptive_icon_background: "resources/art/newdis/Background-morado.png"
 
 flutter_native_splash:
   color: "#64009D"
-  image: "resources/art/splash_logo.png"
+  image: "resources/art/newdis/splash_logo.png"
   android_12:
     color: "#64009D"
-    image: "resources/art/splash_logo.png"
+    # Padded image: content fits inside Android 12's circular splash mask to avoid clipping.
+    image: "assets/icons/splash_logo_android12.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
