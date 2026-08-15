@@ -18,8 +18,13 @@ class AnimatedLoginBackground extends StatefulWidget {
 class _AnimatedLoginBackgroundState extends State<AnimatedLoginBackground>
     with SingleTickerProviderStateMixin {
   // Fondo base (hardcodeado en el widget, no vía AppColors).
-  static const Color _bgColor = Color(0xFF0B0610);
-  static const Color _bubbleColor = Color(0xFF2E1147);
+  // Modo oscuro (aclarado respecto del SPEC 06).
+  static const Color _bgDark = Color(0xFF1A0B2E);
+  static const Color _bubbleDark = Color(0xFF4A1D73);
+
+  // Modo claro (variante en grises con leve tinte lila).
+  static const Color _bgLight = Color(0xFFDAD5E3);
+  static const Color _bubbleLight = Color(0xFFABA2BE);
 
   // Animación: loop continuo, sin reverse.
   static const Duration _cycle = Duration(seconds: 18);
@@ -43,8 +48,12 @@ class _AnimatedLoginBackgroundState extends State<AnimatedLoginBackground>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? _bgDark : _bgLight;
+    final bubbleColor = isDark ? _bubbleDark : _bubbleLight;
+
     return Container(
-      color: _bgColor,
+      color: bgColor,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
@@ -69,9 +78,9 @@ class _AnimatedLoginBackgroundState extends State<AnimatedLoginBackground>
                         gradient: RadialGradient(
                           stops: const [0.0, 0.45, 1.0],
                           colors: [
-                            _bubbleColor.withValues(alpha: 1.0),
-                            _bubbleColor.withValues(alpha: 0.55),
-                            _bubbleColor.withValues(alpha: 0.0),
+                            bubbleColor.withValues(alpha: 1.0),
+                            bubbleColor.withValues(alpha: 0.55),
+                            bubbleColor.withValues(alpha: 0.0),
                           ],
                         ),
                       ),
