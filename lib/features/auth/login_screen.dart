@@ -81,18 +81,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // El título va sobre el fondo animado oscuro (idéntico en
-                  // ambos temas), así que se mantiene claro siempre.
+                  // Los títulos siguen el color de texto del tema activo
+                  // (context.palette.text): oscuros en modo claro y claros en
+                  // modo oscuro, como el resto de los textos del login.
                   Text(
                     'LIBRO DE GASTOS',
                     style: AppTextStyles.eyebrow(context)
-                        .copyWith(color: AppPalette.dark.text),
+                        .copyWith(color: context.palette.text),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Mis gastos',
                     style: AppTextStyles.h1(context)
-                        .copyWith(color: AppPalette.dark.text),
+                        .copyWith(color: context.palette.text),
                   ),
                   const SizedBox(height: 32),
                   Container(
