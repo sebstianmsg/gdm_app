@@ -345,24 +345,31 @@ class _ColorSwatches extends StatelessWidget {
       swatches.insert(0, selected);
     }
 
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
+    return GridView.count(
+      crossAxisCount: 8,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      childAspectRatio: 1,
       children: swatches.map((hex) {
         final isSel = hex.toUpperCase() == selectedUpper;
-        return GestureDetector(
-          onTap: () => onSelected(hex),
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: colorFromHex(hex),
-              shape: BoxShape.circle,
-              border: isSel ? Border.all(color: Colors.white, width: 2) : null,
+        return Center(
+          child: GestureDetector(
+            onTap: () => onSelected(hex),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: colorFromHex(hex),
+                shape: BoxShape.circle,
+                border: isSel ? Border.all(color: Colors.white, width: 2) : null,
+              ),
+              child: isSel
+                  ? const Icon(Icons.check, color: Colors.white, size: 20)
+                  : null,
             ),
-            child: isSel
-                ? const Icon(Icons.check, color: Colors.white, size: 20)
-                : null,
           ),
         );
       }).toList(),
