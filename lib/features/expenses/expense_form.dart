@@ -15,6 +15,9 @@ Future<void> showAddExpenseSheet(
   required List<Category> categories,
   required void Function(String description, double amount, DateTime date, String categoryId)
   onSubmit,
+  String? initialDescription,
+  double? initialAmount,
+  String? initialCategoryId,
 }) {
   return showModalBottomSheet(
     context: context,
@@ -25,17 +28,32 @@ Future<void> showAddExpenseSheet(
     ),
     builder: (context) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: _AddExpenseForm(categories: categories, onSubmit: onSubmit),
+      child: _AddExpenseForm(
+        categories: categories,
+        onSubmit: onSubmit,
+        initialDescription: initialDescription,
+        initialAmount: initialAmount,
+        initialCategoryId: initialCategoryId,
+      ),
     ),
   );
 }
 
 class _AddExpenseForm extends StatefulWidget {
-  const _AddExpenseForm({required this.categories, required this.onSubmit});
+  const _AddExpenseForm({
+    required this.categories,
+    required this.onSubmit,
+    this.initialDescription,
+    this.initialAmount,
+    this.initialCategoryId,
+  });
 
   final List<Category> categories;
   final void Function(String description, double amount, DateTime date, String categoryId)
   onSubmit;
+  final String? initialDescription;
+  final double? initialAmount;
+  final String? initialCategoryId;
 
   @override
   State<_AddExpenseForm> createState() => _AddExpenseFormState();
@@ -52,7 +70,26 @@ class _AddExpenseFormState extends State<_AddExpenseForm> {
   @override
   void initState() {
     super.initState();
-    if (widget.categories.isNotEmpty) _categoryId = widget.categories.first.id;
+    // Valores iniciales (ej. desde el alta por voz, spec 27). Todos opcionales:
+    // sin ellos el form se comporta igual que antes.
+    if (widget.initialDescription != null) {
+      _descController.text = widget.initialDescription!;
+    }
+    if (widget.initialAmount != null) {
+      final amount = widget.initialAmount!;
+      _amountController.text =
+          amount == amount.truncateToDouble()
+              ? amount.toStringAsFixed(0)
+              : amount.toString();
+    }
+    if (widget.initialCategoryId != null &&
+        widget.categories.any((c) => c.id == widget.initialCategoryId)) {
+      _categoryId = widget.initialCategoryId;
+      // El caller ya resolvió la categoría; no la pisamos por keywords.
+      _categoryTouchedManually = true;
+    } else if (widget.categories.isNotEmpty) {
+      _categoryId = widget.categories.first.id;
+    }
   }
 
   @override

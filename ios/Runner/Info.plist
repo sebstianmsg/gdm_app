@@ -4,6 +4,10 @@
 	<dict>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Usamos el micrófono para cargar gastos por voz.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>Usamos el reconocimiento de voz para transcribir el gasto que dictás.</string>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>

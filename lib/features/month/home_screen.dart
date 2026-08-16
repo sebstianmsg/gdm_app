@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../models/category.dart';
+import '../../services/voice_input.dart';
 import '../../theme/app_palette.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../utils/format.dart';
+import '../../utils/voice_expense_parser.dart';
 import '../auth/auth_provider.dart';
 import '../categories/categories_modal.dart';
 import '../categories/categories_provider.dart';
 import '../expenses/delete_expense_dialog.dart';
 import '../expenses/expense_form.dart';
 import '../expenses/expenses_provider.dart';
+import '../expenses/listening_overlay.dart';
 import '../reminders/reminders_startup.dart';
 import 'category_summary.dart';
 import 'donut_card.dart';
@@ -77,6 +81,8 @@ class HomeScreen extends ConsumerWidget {
                           );
                     },
                   ),
+                  onVoicePressed: () =>
+                      _startVoiceExpense(context, ref, categories, month),
                 ),
               ),
               const SizedBox(height: 16),
@@ -108,6 +114,142 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Flujo de alta de gasto por voz (spec 27): inicializa el micrófono, muestra
+/// el overlay "Escuchando…", parsea la frase y abre el sheet pre-llenado para
+/// que el usuario confirme. Los casos degradados se refuerzan en el paso 8.
+Future<void> _startVoiceExpense(
+  BuildContext context,
+  WidgetRef ref,
+  List<Category> categories,
+  DateTime month,
+) async {
+  final service = VoiceInputService();
+  final transcript = ValueNotifier<String>('');
+  final available = await service.initialize();
+  if (!context.mounted) {
+    transcript.dispose();
+    return;
+  }
+  if (!available) {
+    transcript.dispose();
+    if (!context.mounted) return;
+    // Permiso denegado o motor de voz ausente: avisamos y ofrecemos el alta
+    // manual normal para no dejar al usuario sin alternativa.
+    final goManual = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Micrófono no disponible'),
+        content: Text(
+          service.status == VoiceInputStatus.permissionDenied
+              ? 'Necesitamos permiso de micrófono para cargar gastos por voz. '
+                    'Podés cargar el gasto a mano.'
+              : 'El reconocimiento de voz no está disponible en este '
+                    'dispositivo. Podés cargar el gasto a mano.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cerrar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Cargar a mano'),
+          ),
+        ],
+      ),
+    );
+    if (goManual == true && context.mounted) {
+      await _openAddExpenseSheet(context, ref, categories, month);
+    }
+    return;
+  }
+
+  var stopped = false;
+  Future<void> finish() async {
+    if (stopped) return;
+    stopped = true;
+    await service.stop();
+    if (context.mounted && Navigator.canPop(context)) Navigator.pop(context);
+  }
+
+  await service.listen(
+    onResult: (text, isFinal) {
+      transcript.value = text;
+      if (isFinal) finish();
+    },
+  );
+  if (!context.mounted) {
+    await service.stop();
+    transcript.dispose();
+    return;
+  }
+  await showListeningOverlay(context, transcript: transcript, onStop: finish);
+  await service.stop();
+
+  final parsed = parseVoiceExpense(transcript.value);
+  transcript.dispose();
+  if (!context.mounted) return;
+
+  // Sin monto → el sheet abre con el campo monto vacío (initialAmount null).
+  // Sin match de categoría → _resolveCategoryId cae en "Otros"/primera.
+  final categoryId = _resolveCategoryId(parsed.categoryName, categories);
+  await _openAddExpenseSheet(
+    context,
+    ref,
+    categories,
+    month,
+    initialDescription: parsed.description,
+    initialAmount: parsed.amount,
+    initialCategoryId: categoryId,
+  );
+}
+
+/// Abre el sheet "Agregar gasto" (con o sin valores iniciales) y persiste el
+/// gasto vía el flujo existente. Reusado por el alta por voz y por el fallback
+/// manual cuando el micrófono no está disponible.
+Future<void> _openAddExpenseSheet(
+  BuildContext context,
+  WidgetRef ref,
+  List<Category> categories,
+  DateTime month, {
+  String? initialDescription,
+  double? initialAmount,
+  String? initialCategoryId,
+}) {
+  return showAddExpenseSheet(
+    context,
+    categories: categories,
+    initialDescription: initialDescription,
+    initialAmount: initialAmount,
+    initialCategoryId: initialCategoryId,
+    onSubmit: (description, amount, date, catId) {
+      ref
+          .read(expensesProvider(month).notifier)
+          .create(
+            description: description,
+            amount: amount,
+            date: date,
+            categoryId: catId,
+          );
+    },
+  );
+}
+
+/// Cruza el nombre de categoría detectado contra las categorías reales del
+/// usuario (case-insensitive). Fallback: "Otros" y, si no existe, la primera.
+String? _resolveCategoryId(String? categoryName, List<Category> categories) {
+  if (categories.isEmpty) return null;
+  if (categoryName != null) {
+    for (final c in categories) {
+      if (c.name.toLowerCase() == categoryName.toLowerCase()) return c.id;
+    }
+  }
+  for (final c in categories) {
+    if (c.name.toLowerCase() == 'otros') return c.id;
+  }
+  return categories.first.id;
 }
 
 /// Muestra un diálogo de confirmación antes de cerrar sesión.

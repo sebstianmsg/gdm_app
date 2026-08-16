@@ -25,11 +25,15 @@ class DonutCard extends StatelessWidget {
     required this.summaries,
     required this.onAddPressed,
     required this.onManageCategories,
+    this.onVoicePressed,
   });
 
   final List<CategorySummary> summaries;
   final VoidCallback onAddPressed;
   final VoidCallback onManageCategories;
+
+  /// Alta de gasto por voz (spec 27). Si es null, no se muestra el mic.
+  final VoidCallback? onVoicePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +87,14 @@ class DonutCard extends StatelessWidget {
                         painter: DonutPainter(summaries: summaries),
                       ),
                       _AddButton(onPressed: onAddPressed),
+                      // Mic flotante en la esquina inferior derecha del donut,
+                      // al alcance del pulgar, sin tapar el "+" central.
+                      if (onVoicePressed != null)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: _VoiceButton(onPressed: onVoicePressed!),
+                        ),
                     ],
                   ),
                 ),
@@ -154,6 +166,31 @@ class _MoreDetailsButton extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: _masDetallesColor(context),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VoiceButton extends StatelessWidget {
+  const _VoiceButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: context.palette.ink,
+      shape: const CircleBorder(),
+      elevation: 6,
+      shadowColor: context.palette.ink,
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: SizedBox(
+          width: 56,
+          height: 56,
+          child: Icon(Icons.mic, color: context.palette.inkText, size: 26),
         ),
       ),
     );

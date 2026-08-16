@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <!-- Re-programar las notificaciones tras reiniciar el dispositivo. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Alta de gasto por voz: reconocimiento de voz nativo (spec 27). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
         android:label="Gastos del mes"
         android:name="${applicationName}"
@@ -81,6 +83,11 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- speech_to_text: descubrir el servicio de reconocimiento de voz del
+             SO (spec 27). Requerido en Android 11+ por package visibility. -->
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
         </intent>
     </queries>
 </manifest>
