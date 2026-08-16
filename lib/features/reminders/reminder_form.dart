@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -114,7 +115,7 @@ class _ReminderFormState extends ConsumerState<_ReminderForm> {
   }
 
   Future<void> _pickTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _time);
+    final picked = await showTimeWheelPicker(context, _time);
     if (picked != null) setState(() => _time = picked);
   }
 
@@ -280,6 +281,123 @@ class _ReminderFormState extends ConsumerState<_ReminderForm> {
             OutlinedButton(
               onPressed: _saving ? null : _submit,
               child: Text(_isEditing ? 'Guardar' : 'Crear'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Abre un selector de hora tipo alarma de teléfono: dos ruedas deslizables
+/// (hora 0-23 y minuto 0-59) en un bottom sheet coherente con el resto del
+/// form (fondo `surface`, borde `AppRadius.modal`, formato 24h). Inicializa en
+/// [initial] y devuelve el `TimeOfDay` elegido al tocar "Listo", o `null` si se
+/// cierra el sheet sin confirmar. Reemplaza a `showTimePicker` (spec 28).
+Future<TimeOfDay?> showTimeWheelPicker(
+  BuildContext context,
+  TimeOfDay initial,
+) {
+  return showModalBottomSheet<TimeOfDay>(
+    context: context,
+    backgroundColor: context.palette.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.modal)),
+    ),
+    builder: (context) => _TimeWheelSheet(initial: initial),
+  );
+}
+
+class _TimeWheelSheet extends StatefulWidget {
+  const _TimeWheelSheet({required this.initial});
+
+  final TimeOfDay initial;
+
+  @override
+  State<_TimeWheelSheet> createState() => _TimeWheelSheetState();
+}
+
+class _TimeWheelSheetState extends State<_TimeWheelSheet> {
+  late int _hour = widget.initial.hour;
+  late int _minute = widget.initial.minute;
+  late final FixedExtentScrollController _hourController =
+      FixedExtentScrollController(initialItem: _hour);
+  late final FixedExtentScrollController _minuteController =
+      FixedExtentScrollController(initialItem: _minute);
+
+  @override
+  void dispose() {
+    _hourController.dispose();
+    _minuteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final textStyle = TextStyle(
+      fontSize: 22,
+      fontWeight: FontWeight.w600,
+      color: palette.text,
+    );
+
+    Widget wheel({
+      required int count,
+      required FixedExtentScrollController controller,
+      required ValueChanged<int> onChanged,
+    }) {
+      return Expanded(
+        child: CupertinoPicker(
+          scrollController: controller,
+          itemExtent: 40,
+          onSelectedItemChanged: onChanged,
+          children: List.generate(
+            count,
+            (i) => Center(
+              child: Text(i.toString().padLeft(2, '0'), style: textStyle),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Elegí la hora',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 200,
+              child: Row(
+                children: [
+                  wheel(
+                    count: 24,
+                    controller: _hourController,
+                    onChanged: (v) => _hour = v,
+                  ),
+                  Text(':', style: textStyle),
+                  wheel(
+                    count: 60,
+                    controller: _minuteController,
+                    onChanged: (v) => _minute = v,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () => Navigator.pop(
+                context,
+                TimeOfDay(hour: _hour, minute: _minute),
+              ),
+              child: const Text('Listo'),
             ),
           ],
         ),
