@@ -48,18 +48,29 @@ class CaptchaField extends StatelessWidget {
   Widget build(BuildContext context) {
     final override = debugBuilder;
     if (override != null) return override(context, this);
+    // El widget de Turnstile es un iframe fijo de 300px dentro de un WebView
+    // del mismo ancho (`flutter_turnstile` lo cablea a `size.width`). En
+    // pantallas con densidad de píxeles fraccionaria el borde derecho del
+    // iframe (la nube y la "E" de CLOUDFLARE) cae sobre el límite de redondeo
+    // y se recorta unos px. Envolverlo en un `SizedBox` un poco más ancho fuerza
+    // al WebView a ese ancho (por las constraints ajustadas del SizedBox), de
+    // modo que el iframe de 300px queda con margen a la derecha y no se corta.
     return Center(
-      child: CloudFlareTurnstile(
-        siteKey: Env.turnstileSiteKey,
-        controller: controller,
-        options: TurnstileOptions(
-          theme: Theme.of(context).brightness == Brightness.dark
-              ? TurnstileTheme.dark
-              : TurnstileTheme.light,
+      child: SizedBox(
+        width: 312,
+        height: 70,
+        child: CloudFlareTurnstile(
+          siteKey: Env.turnstileSiteKey,
+          controller: controller,
+          options: TurnstileOptions(
+            theme: Theme.of(context).brightness == Brightness.dark
+                ? TurnstileTheme.dark
+                : TurnstileTheme.light,
+          ),
+          onTokenReceived: onToken,
+          onTokenExpired: onExpired,
+          onError: onError,
         ),
-        onTokenReceived: onToken,
-        onTokenExpired: onExpired,
-        onError: onError,
       ),
     );
   }
