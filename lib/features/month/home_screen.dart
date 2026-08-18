@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -25,21 +27,112 @@ import 'movements_card.dart';
 
 /// Pantalla principal. Réplica de `.wrap` en `public/index.html`: header,
 /// selector de mes + total, donut por categoría, movimientos.
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  /// Máximo de reintentos automáticos del fetch inicial antes de caer a un
+  /// estado de error visible con el pull-to-refresh como salida (spec 32).
+  static const int _maxRetries = 3;
+
+  /// Backoff acotado: 1s, 2s, 4s. El índice usa el contador de reintentos.
+  static const List<Duration> _backoff = [
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+    Duration(seconds: 4),
+  ];
+
+  Timer? _retryTimer;
+  int _retryCount = 0;
+  DateTime? _retryMonth;
+
+  @override
+  void dispose() {
+    _retryTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Reintenta automáticamente el fetch inicial fallido de los providers del
+  /// donut, con un límite acotado y backoff. Reinicia el contador cuando ambos
+  /// providers tienen valor o cuando cambia el mes visible. Evita bucles
+  /// infinitos: agotados los reintentos, deja el estado de error visible.
+  void _scheduleRetryIfNeeded(DateTime month) {
+    // Cambió el mes visible: contador y timer arrancan de cero para ese mes.
+    if (_retryMonth != month) {
+      _retryMonth = month;
+      _retryCount = 0;
+      _retryTimer?.cancel();
+      _retryTimer = null;
+    }
+
+    final categoriesAsync = ref.read(categoriesProvider);
+    final expensesAsync = ref.read(expensesProvider(month));
+
+    // Éxito: ambos tienen valor → limpiar cualquier reintento pendiente.
+    if (categoriesAsync.hasValue && expensesAsync.hasValue) {
+      _retryCount = 0;
+      _retryTimer?.cancel();
+      _retryTimer = null;
+      return;
+    }
+
+    final categoriesFailed =
+        categoriesAsync.hasError && !categoriesAsync.hasValue;
+    final expensesFailed = expensesAsync.hasError && !expensesAsync.hasValue;
+    if (!categoriesFailed && !expensesFailed) return; // aún cargando, sin error.
+
+    // Ya hay un reintento en vuelo o se agotó el límite: no encadenar más.
+    if (_retryTimer != null || _retryCount >= _maxRetries) return;
+
+    final delay = _backoff[_retryCount];
+    _retryCount++;
+    _retryTimer = Timer(delay, () {
+      _retryTimer = null;
+      if (!mounted) return;
+      if (categoriesFailed) {
+        ref.read(categoriesProvider.notifier).refresh();
+      }
+      if (expensesFailed) {
+        ref.read(expensesProvider(month).notifier).refresh();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Re-programa las notificaciones de recordatorios al abrir la app (spec 16,
     // pasos 7-8). Se resuelve en segundo plano; no bloquea el render.
     ref.watch(remindersStartupSyncProvider);
     final month = ref.watch(selectedMonthProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final expensesAsync = ref.watch(expensesProvider(month));
+    // Dispara el reintento automático acotado cuando la primera carga falla.
+    _scheduleRetryIfNeeded(month);
     final categories = categoriesAsync.valueOrNull ?? const [];
     final expenses = expensesAsync.valueOrNull ?? const [];
     final total = expenses.fold<double>(0, (a, e) => a + e.amount);
-    final summaries = summarizeByCategory(expenses, categories);
+    // Estado combinado del donut (spec 32): "listo" solo cuando *ambos*
+    // providers tienen valor; hasta entonces "cargando" (o "error" si la
+    // primera carga falló sin valor previo). Deja de ignorar `hasError`.
+    final donutStatus = _deriveDonutStatus(categoriesAsync, expensesAsync);
+    // Mientras el reintento automático sigue en curso, el donut se muestra
+    // "cargando" (spinner), no como error, para no exponer un estado de error
+    // ni un flash gris antes de agotar los reintentos (spec 32, paso 4). Solo
+    // al agotar el límite (sin timer pendiente) cae a error visible.
+    final retriesExhausted = _retryCount >= _maxRetries && _retryTimer == null;
+    final effectiveDonutStatus =
+        donutStatus == DonutStatus.error && !retriesExhausted
+            ? DonutStatus.loading
+            : donutStatus;
+    // Solo se resumen categorías cuando el donut está listo; durante la carga
+    // se pasa vacío para no pintar "sin gastos" antes de tiempo (paso 2 lo usa).
+    final summaries = donutStatus == DonutStatus.ready
+        ? summarizeByCategory(expenses, categories)
+        : const <CategorySummary>[];
     final isLoading = expensesAsync.isLoading && !expensesAsync.hasValue;
 
     return Scaffold(
@@ -66,6 +159,7 @@ class HomeScreen extends ConsumerWidget {
               HomeCarousel(
                 donut: DonutCard(
                   summaries: summaries,
+                  status: effectiveDonutStatus,
                   onManageCategories: () => showCategoriesModal(context),
                   onAddPressed: () => showAddExpenseSheet(
                     context,
@@ -114,6 +208,27 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Deriva el estado combinado del donut (spec 32) a partir de los dos providers
+/// que lo alimentan. Reglas:
+/// - **listo**: ambos tienen valor → se puede pintar el donut o "sin gastos".
+/// - **error**: alguno falló y *no* hay valor previo utilizable en ninguno.
+/// - **cargando**: cualquier otro caso (primera carga en curso).
+///
+/// El caso "listo" tiene prioridad: si ambos ya tienen valor, un refresh en
+/// curso o un error transitorio no debe ocultar los datos ya disponibles.
+DonutStatus _deriveDonutStatus(
+  AsyncValue<Object?> categoriesAsync,
+  AsyncValue<Object?> expensesAsync,
+) {
+  if (categoriesAsync.hasValue && expensesAsync.hasValue) {
+    return DonutStatus.ready;
+  }
+  final hasError = (categoriesAsync.hasError && !categoriesAsync.hasValue) ||
+      (expensesAsync.hasError && !expensesAsync.hasValue);
+  if (hasError) return DonutStatus.error;
+  return DonutStatus.loading;
 }
 
 /// Flujo de alta de gasto por voz (spec 27): inicializa el micrófono, muestra
